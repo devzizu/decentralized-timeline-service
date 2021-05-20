@@ -1,0 +1,117 @@
+
+Central server:
+
+    1. In memory: stores all nodes (later DHT, concurreny?)
+
+    >>> use cases:
+
+        1. Log-In:
+
+            - can have timeline recovery
+
+        2. Register requests:
+        
+            - does not have timeline recovery
+        
+        3. Subscriptions requests:
+            
+            - "subscribe <my-node-id> <sub-node-id>" : Determines which to connect:
+                -> "ok <connect-ip> <his-last-message>" (font or forward)
+        
+        4. Sign-Out requests:
+        
+            - "leave <node-id>": deals with dependencies on node connections and forwarders
+
+    >>> connections:
+        
+        REQ - REPLY
+
+        Wrapper
+        {
+            request_type: "subscribe",
+            content: byte[] (serialize(SubscribeRequest))
+        }
+
+        SubscribeRequest
+        {
+            "mynode": ...,
+            ...
+        }
+
+Every node has:
+
+    >>> connections:
+
+    1. PUB: send timeline messages (and also forwards)
+    2. SUB: get subscription messages
+    3. INPROC (PULL): 
+        PUSH 1: SUB -> PUB
+        PUSH 2: STDIN -> PUB
+    4. REPLY (transferencias de timeline)
+    5. PULL (logout warnings)
+
+    >>> info:
+
+    CENTRAL:
+
+    {
+        nodeUser: {
+            network: {
+                pub: {
+                    host: ...,
+                    port: ...,
+                },
+                reply: {
+                    host: ...,
+                    port: ...,
+                },
+                pull: {
+                    host: ...,
+                    port: ...,                    
+                }                
+            }
+            status: on/off,
+            subscribers: {
+                nodeUser,
+                nodeUserID,
+                ...
+            },
+            subscriptions: {
+                nodeUserID: lastMessageFrom...,
+                ...
+            },
+            connections: {
+                node1 (dest): node2 (forwarder),
+                ...
+            }
+        }
+    }
+
+    NODE:
+
+    {
+        nodeUser: {
+            myclock: lastMessageFrom...,
+            subscriptions: {
+                subscription1: ...,
+            ...
+            },
+            timeline: [
+                ...
+            ]
+        }
+    }
+
+Timeline message content:
+
+    >>> info:
+
+    {
+        "sender": nodeUser,
+        "clock": {
+            mynode: ...
+            subscription1: ...,
+            ...
+        },
+        "content": ...
+    }
