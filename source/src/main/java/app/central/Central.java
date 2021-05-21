@@ -1,6 +1,6 @@
 package app.central;
 
-import java.util.*;t
+import java.util.*;
 
 import app.central.usernode.*;
 
@@ -35,19 +35,23 @@ public class Central {
             user.online = true;
             user.network = network;
 
-            //adding the dependency to the node witch we will connect the user that logged in to receive messages of the subcription
-            user.subscriptions.forEach(subscription -> database.get(electNode2Connect(subscription)).connections.add(new Connection(subscription,username)));
+            Set<IpPort> connecting = new HashSet<>();
 
-            //aqui falta fazer retrieve aos ips e depois contruir a resposta (talvez criar a espécie de um DTO...)
-
+            for(String subscription : user.subscriptions){
+                UserNode electedNode = database.get(electNode2Connect(subscription));
+                electedNode.connections.add(new Connection(subscription,username));
+                connecting.add(new IpPort(electedNode.network.pubHost,electedNode.network.pubPort));
+            }
         }
 
         
         return res;
     }
 
+
+
     public String electNode2Connect(String Subscription){
-        return ""; // aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
+        return ""; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
                    //consoante um certo raciocínio
     }
     
