@@ -1,13 +1,12 @@
 package app.central.usernode;
 
-import java.net.InetAddress;
 import java.util.Objects;
 
 public class IpPort{
-    public InetAddress ip;
-    public int port;
+    public String ip;
+    public long port;
 
-    public IpPort(InetAddress ip, int port) {
+    public IpPort(String ip, long port) {
         this.ip = ip;
         this.port = port;
     }

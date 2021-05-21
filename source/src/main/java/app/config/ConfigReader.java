@@ -8,7 +8,11 @@ public class ConfigReader {
     
     private static Toml tomlObj;
 
-    public static void read(String filename) {
+    public ConfigReader() {
+        
+    }
+
+    public void read(String filename) {
         try {
 
             File configFile = new File(filename);
@@ -19,12 +23,12 @@ public class ConfigReader {
         }
     }
 
-    public static long getLong(String key, String value) {
+    public long getLong(String key, String value) {
 
         return tomlObj.getTable(key).getLong(value);
     }
 
-    public static String getString(String key, String value) {
+    public String getString(String key, String value) {
 
         return tomlObj.getTable(key).getString(value);
     }

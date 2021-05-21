@@ -8,8 +8,11 @@ compile:
 package:
 	mvn package
 
+clean:
+	mvn clean
+
 run:
-	mvn exec:java -q -Dexec.mainClass=$(NODE_MAIN) -Dexec.args="$(ARGS)"
+	mvn exec:java -q -Dexec.mainClass=$(NODE_MAIN) -Dexec.args="$(args)"
 
 # program run example:
-# make run ARGS="-node 1 -pub 10000 -pull 10001 -reply 10002"
+# make run args="--register -node 1 -pub 10001 -pull 10002 -reply 10002"

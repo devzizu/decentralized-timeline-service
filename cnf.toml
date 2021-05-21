@@ -1,1 +1,3 @@
 [node]
+netty_service_thread_pool = 2
+netty_service_node_id = "node"

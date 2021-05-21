@@ -1,5 +1,5 @@
 package app.exchange;
 
-public class RequestWrapper {
+public class MessageWrapper {
     
 }
