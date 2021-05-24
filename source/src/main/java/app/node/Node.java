@@ -33,7 +33,7 @@ public class Node {
         parser.addArgument("-pull").required(true)
             .help("Network port of the ZMQ.PULL server (central notifications).");
         parser.addArgument("-reply").required(true)
-            .help("Network port of the ZMQ.REP server (timeline recovery).");
+            .help("Network port of the Atomix server (timeline recovery).");
 
         Namespace ns = null;
 

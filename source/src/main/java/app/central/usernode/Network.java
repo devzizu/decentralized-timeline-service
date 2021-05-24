@@ -72,6 +72,7 @@ public class Network {
     @Override
     public String toString() {
         return "{" +
+            " host='" + getHost() + "'" +
             ", pubPort='" + getPubPort() + "'" +
             ", replyPort='" + getReplyPort() + "'" +
             ", pullPort='" + getPullPort() + "'" +
