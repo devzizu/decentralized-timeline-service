@@ -1,99 +1,80 @@
 package app.central.service;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
-import app.central.usernode.*;
+import app.central.usernode.CentralNetwork;
+import app.central.util.CentralUtils;
+import app.config.ConfigReader;
+import app.exchange.req.LoginRequest;
+import app.exchange.res.LoginResponse;
+import app.util.data.Serialization;
+import io.atomix.cluster.messaging.MessagingConfig;
+import io.atomix.cluster.messaging.impl.NettyMessagingService;
+import io.atomix.utils.net.Address;
 
 public class CentralService {
 
-    public Map<String, UserNode> database;
+    // messaging service
+    private ScheduledExecutorService executorService;
+    private NettyMessagingService messagingService;
+    private String centralServiceID;
 
-    public CentralService() {
-        this.database = new HashMap<>();    
+    // central network and api utils
+    private CentralNetwork centralNetwork;
+    private CentralUtils centralUtils;
+
+    public CentralService(ConfigReader config, String centralID, CentralNetwork centralNetwork, CentralUtils centralUtils) {
+
+        Long centralThreadPoolSize = config.getLong("central", "netty_service_thread_pool");
+
+        centralServiceID = config.getString("central", "netty_service_node_id") + "_" + centralID;
+
+        this.executorService = Executors.newScheduledThreadPool(centralThreadPoolSize.intValue());
+        this.messagingService = new NettyMessagingService(centralID, Address.from((int) centralNetwork.replyPort), new MessagingConfig());
     }
 
+    public void start() {
 
-    //used for registering a new user
-    public boolean addNewUser(String username,Network network){
-        boolean res = true;
-        if(database.containsKey(username)) res=false;
-        
-        else{
-            UserNode user = new UserNode(username, network, true, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-            database.put(username,user);
-        }
-        return res;
+        this.registerHandlers();
+
+        this.messagingService.start();
     }
 
+    public void registerHandlers() {
 
-    //used for registering a new user
-    public boolean loginUser(String username,Network network){
-        boolean res = true;
-        UserNode user = database.get(username);
-        if(user==null || user.online) res=false;
-        else{
-            user.online = true;
-            user.network = network;
-
-            Set<IpPort> connecting = new HashSet<>();
-
-            for(String subscription : user.subscriptions){
-                UserNode electedNode = database.get(electNode2Connect(subscription));
-                electedNode.connections.add(new Connection(subscription,username));
-                connecting.add(new IpPort(electedNode.network.host,electedNode.network.pubPort));
-            }
-        }
-        return res;
+        this.register_node_login_request();
     }
 
+    public void sendBytesAsync(byte[] bytes, String type, Address address) {
 
-    public IpPort subscribe(String subscriber, String subscription){
+        this.messagingService.sendAsync(address, type, bytes)
+        .thenRun(() -> {
+            System.out.println("(central:"+type+") responding back to " + address.toString());
+        });
+    }
 
-        UserNode userSubscriber = database.get(subscriber);
-        UserNode userSubscription = database.get(subscription);
+    public void register_node_login_request() {
 
-        if(userSubscriber==null || userSubscription==null || !(userSubscriber.online)) return null;
+        this.messagingService.registerHandler("node_login_request", (address, requestBytes) -> {
 
-        else{
-            if(userSubscriber.subscriptions.contains(subscription)) return null;
+            try {
+
+                LoginRequest loginRequest = null;
+
+                loginRequest = (LoginRequest) Serialization.deserialize(requestBytes);
+
+                LoginResponse loginResponse = centralUtils.login_node(loginRequest);
+
+                byte[] responseBytes = Serialization.serialize(loginResponse);
+
+                this.sendBytesAsync(responseBytes, "central_login_response", address);
             
-            else{
-                userSubscriber.subscriptions.add(subscription);
-                userSubscription.subscribers.add(subscriber);
-                UserNode electedNode = database.get(electNode2Connect(subscription));
-                electedNode.connections.add(new Connection(subscription,subscriber));
-                return new IpPort(electedNode.network.host,electedNode.network.pubPort); //info a quem tem que se ligar para receber os posts
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }
+
+        }, this.executorService);
     }
-
-
-
-    public void logout(String username){
-        UserNode user = database.get(username);
-
-        if(user==null || !user.online) return;
-
-        user.online = false;
-        
-        for(Connection c : user.connections){
-            //TODO temos que ter em atenção que este nodo que está a fazer logout não ser considerado
-            String newConnection = electNode2Connect(c.origin_node);
-
-            UserNode nc = database.get(newConnection);
-
-            IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
-
-            //TODO send to c.dependentNode the IpPort (using the push-pull channel)
-        }
-
-    }
-
-
-
-    private String electNode2Connect(String Subscription){
-        return ""; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
-                   //consoante um certo raciocínio
-    }
-
 }

@@ -1,5 +1,5 @@
 
-package app;
+package app.central.store;
 
 import com.google.gson.Gson;
 
@@ -40,6 +40,17 @@ public class RedisUtils {
         connection.close();
         
         return (new Gson()).fromJson(json, UserNode.class);
+    }
+
+    public boolean hasNode(String nodeID) {
+
+        Jedis connection = this.redisPool.getResource();
+
+        boolean hasNode = connection.exists(nodeID);
+
+        connection.close();
+
+        return hasNode;
     }
 
     public void closePool() {

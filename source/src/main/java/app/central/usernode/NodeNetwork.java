@@ -3,17 +3,17 @@ package app.central.usernode;
 
 import java.util.*;
 
-public class Network {
+public class NodeNetwork {
     
     public String host;
     public long pubPort;
     public long replyPort;
     public long pullPort;
 
-    public Network() {
+    public NodeNetwork() {
     }
 
-    public Network(long pubPort, long replyPort, long pullPort) {
+    public NodeNetwork(long pubPort, long replyPort, long pullPort) {
         this.pubPort = pubPort;
         this.replyPort = replyPort;
         this.pullPort = pullPort;
@@ -57,10 +57,10 @@ public class Network {
     public boolean equals(Object o) {
         if (o == this)
             return true;
-        if (!(o instanceof Network)) {
+        if (!(o instanceof NodeNetwork)) {
             return false;
         }
-        Network network = (Network) o;
+        NodeNetwork network = (NodeNetwork) o;
         return Objects.equals(host, network.host) && pubPort == network.pubPort && replyPort == network.replyPort && pullPort == network.pullPort;
     }
 

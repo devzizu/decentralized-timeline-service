@@ -6,7 +6,7 @@ import app.central.usernode.Connection;
 import app.central.usernode.Network;
 import app.central.usernode.UserNode;
 
-public class Main {
+public class RedisStoreTest {
 
     static RedisUtils redis = new RedisUtils();
 

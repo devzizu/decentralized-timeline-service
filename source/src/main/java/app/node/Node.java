@@ -3,7 +3,7 @@ package app.node;
 
 import java.io.IOException;
 
-import app.central.usernode.Network;
+import app.central.usernode.NodeNetwork;
 import app.config.ConfigReader;
 import app.util.gui.GUI;
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -65,7 +65,7 @@ public class Node {
         
         // create node services
 
-        Network nodeNetwork = new Network();
+        NodeNetwork nodeNetwork = new NodeNetwork();
         nodeNetwork.setHost(progArgs.getString("host"));
         nodeNetwork.setPubPort(progArgs.getLong("pub"));
         nodeNetwork.setPullPort(progArgs.getLong("pull"));

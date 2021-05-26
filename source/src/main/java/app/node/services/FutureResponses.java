@@ -24,23 +24,14 @@ public class FutureResponses {
 
         this.CFUTURE_REQUESTS.put(this.requestId++, request);
     }
-/*
-    public int complete(MessageWrapper res) {
 
-        
-        ClientResponse cli_r = null;
-        try {
-            cli_r = (ClientResponse) res.unwrapMessage();
-        } catch (Exception e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+    public int complete(MessageWrapper wrapper) {
+
+        if (this.CFUTURE_REQUESTS.containsKey(wrapper.messageID)) {
+
+            this.CFUTURE_REQUESTS.get(wrapper.messageID).complete(wrapper);
+            this.CFUTURE_REQUESTS.remove(wrapper.messageID);
         }
-
-        if (this.CFUTURE_REQUESTS.containsKey(cli_r.getMESSAGE_ID())) {
-
-            this.CFUTURE_REQUESTS.get(cli_r.getMESSAGE_ID()).complete(res);
-            this.CFUTURE_REQUESTS.remove(cli_r.getMESSAGE_ID());
-        }
-        return cli_r.getMESSAGE_ID();
-    }*/
+        return wrapper.messageID;
+    }
 }

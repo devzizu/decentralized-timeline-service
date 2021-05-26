@@ -9,13 +9,13 @@ public class UserNode implements Serializable {
     private static final long serialVersionUID = 1234567L;
 
     public String username;
-    public Network network;
+    public NodeNetwork network;
     public boolean online;
     public List<String> subscribers;
     public List<String> subscriptions;
     public List<Connection> connections;
 
-    public UserNode(String username, Network network, boolean online, List<String> subscribers, List<String> subscriptions, List<Connection> connections) {
+    public UserNode(String username, NodeNetwork network, boolean online, List<String> subscribers, List<String> subscriptions, List<Connection> connections) {
         this.username = username;
         this.network = network;
         this.online = online;

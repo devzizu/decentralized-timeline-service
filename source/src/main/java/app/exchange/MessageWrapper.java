@@ -1,5 +1,6 @@
 package app.exchange;
 
-public class MessageWrapper {
-    
+public abstract class MessageWrapper {
+
+    public int messageID;
 }
