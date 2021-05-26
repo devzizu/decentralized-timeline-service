@@ -1,8 +1,12 @@
 package app.central.usernode;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class IpPort{
+public class IpPort implements Serializable {
+
+    private static final long serialversionUID = 129348938L;
+    
     public String ip;
     public long port;
 

@@ -1,4 +1,4 @@
-package app.config;
+package app.util.config;
 
 import java.io.File;
 

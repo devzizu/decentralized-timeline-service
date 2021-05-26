@@ -7,12 +7,12 @@ import app.exchange.MessageWrapper;
 
 public class FutureResponses {
     
-    private ConcurrentHashMap<Integer, CompletableFuture<MessageWrapper>> CFUTURE_REQUESTS;
+    private ConcurrentHashMap<Integer, CompletableFuture<MessageWrapper>> futureRequests;
     private int requestId;
 
     public FutureResponses() {
 
-        this.CFUTURE_REQUESTS = new ConcurrentHashMap<>();
+        this.futureRequests = new ConcurrentHashMap<>();
         this.requestId = 0;
     }
 
@@ -20,17 +20,17 @@ public class FutureResponses {
         return this.requestId;
     }
 
-    public void addPendingRequest(CompletableFuture<MessageWrapper> request) {
+    public void addPending(CompletableFuture<MessageWrapper> request) {
 
-        this.CFUTURE_REQUESTS.put(this.requestId++, request);
+        this.futureRequests.put(this.requestId++, request);
     }
 
     public int complete(MessageWrapper wrapper) {
 
-        if (this.CFUTURE_REQUESTS.containsKey(wrapper.messageID)) {
+        if (this.futureRequests.containsKey(wrapper.messageID)) {
 
-            this.CFUTURE_REQUESTS.get(wrapper.messageID).complete(wrapper);
-            this.CFUTURE_REQUESTS.remove(wrapper.messageID);
+            this.futureRequests.get(wrapper.messageID).complete(wrapper);
+            this.futureRequests.remove(wrapper.messageID);
         }
         return wrapper.messageID;
     }

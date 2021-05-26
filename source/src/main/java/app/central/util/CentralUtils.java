@@ -4,8 +4,8 @@ import java.util.*;
 
 import app.central.store.RedisUtils;
 import app.central.usernode.*;
-import app.exchange.req.LoginRequest;
-import app.exchange.res.LoginResponse;
+import app.exchange.req.*;
+import app.exchange.res.*;
 
 public class CentralUtils {
 
@@ -17,14 +17,25 @@ public class CentralUtils {
     }
 
     //used for registering a new user
-    public boolean addNewUser(String username, NodeNetwork network){
-        boolean res = true;
+    public RegisterResponse register_node(RegisterRequest req){
+
+        String username = req.nodeId;
+        NodeNetwork network = req.network;
+
+        RegisterResponse res = new RegisterResponse();
+
         if (redisConnector.hasNode(username)) {
-            res=false;
+
+            res.setStatusCode(false);
+            res.setStatusMessage("node already exists");
+
         } else {
             UserNode user = new UserNode(username, network, true, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
             redisConnector.setNode(username,user);
+            res.setStatusCode(true);
+            res.setStatusMessage("node created");    
         }
+        
         return res;
     }
 
@@ -33,8 +44,13 @@ public class CentralUtils {
         
         UserNode user = redisConnector.getNode(loginRequest.nodeID);
         
+        System.out.println(user);
+
         if(user==null || user.online) {
-            return null;
+            LoginResponse res = new LoginResponse();
+            res.setStatusCode(false);
+            res.setStatusMessage("could not find user or user is already online");
+            return res;
         } else {
             user.online = true;
             user.network = loginRequest.network;
@@ -43,17 +59,27 @@ public class CentralUtils {
             Map<String,IpPort> recoverPorts = new HashMap<>();
 
             for(String subscription : user.subscriptions){
-                UserNode electedNode = redisConnector.getNode(electNode2Connect(subscription));
-                electedNode.connections.add(new Connection(subscription, loginRequest.nodeID));
-                connecting.add(new IpPort(electedNode.network.host,electedNode.network.pubPort));
+                
+                String electedNodeID = electNode2Connect(subscription);
+                
+                if (redisConnector.hasNode(electedNodeID)) {
+                    
+                    UserNode electedNode = redisConnector.getNode(electNode2Connect(subscription));
+                    electedNode.connections.add(new Connection(subscription, loginRequest.nodeID));
+                    connecting.add(new IpPort(electedNode.network.host,electedNode.network.pubPort));
 
-                recoverPorts.put(subscription,new IpPort(electedNode.network.host,electedNode.network.replyPort)); //porta de reply para fazer o recover da subscrição
+                    recoverPorts.put(subscription, new IpPort(electedNode.network.host,electedNode.network.replyPort)); //porta de reply para fazer o recover da subscrição
+                }
             }
 
-            return new LoginResponse(connecting, recoverPorts);
+            LoginResponse res = new LoginResponse(connecting, recoverPorts);
+
+            res.setStatusCode(true);
+            res.setStatusMessage("login ok");
+
+            return res;
         }
     }
-
 
     public IpPort subscribe_node(String subscriber, String subscription){
 
@@ -94,8 +120,6 @@ public class CentralUtils {
         }
 
     }
-
-
 
     private String electNode2Connect(String Subscription){
         return ""; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um

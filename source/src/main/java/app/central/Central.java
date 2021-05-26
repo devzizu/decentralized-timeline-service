@@ -2,12 +2,12 @@
 package app.central;
 
 import app.central.util.*;
-import app.config.ConfigReader;
+import app.util.config.ConfigReader;
 import app.util.gui.GUI;
 import net.sourceforge.argparse4j.ArgumentParsers;
-import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
+
 import app.central.service.CentralService;
 import app.central.store.RedisUtils;
 import app.central.usernode.CentralNetwork;
@@ -25,7 +25,7 @@ public class Central {
         parser.addArgument("-host").required(false)
             .setDefault("localhost")
             .help("Hostname for the listenning servers.");
-        parser.addArgument("-reply").required(true)
+        parser.addArgument("-reply").required(false)
             .help("Network port of the Atomix server (node requests).");
 
         Namespace ns = null;
@@ -44,7 +44,7 @@ public class Central {
     }
     
     public static void main(String[] args) {
-
+        
         GUI.clearScreen(); 
 
         // program configuration
@@ -55,8 +55,8 @@ public class Central {
 
         // central identification
         CentralNetwork centralNetwork = new CentralNetwork();
-        centralNetwork.setHost(progArgs.getString("host"));
-        centralNetwork.setReplyPort(progArgs.getLong("reply"));
+        centralNetwork.setHost(config.getString("central", "main_address_host"));
+        centralNetwork.setReplyPort(config.getLong("central", "main_address_atomix_port"));
 
         String centralID = progArgs.getString("central");
 

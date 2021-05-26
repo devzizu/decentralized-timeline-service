@@ -1,14 +1,16 @@
 package app.central.service;
 
-import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 
 import app.central.usernode.CentralNetwork;
 import app.central.util.CentralUtils;
-import app.config.ConfigReader;
+import app.util.config.ConfigReader;
+import app.exchange.ServiceConstants;
 import app.exchange.req.LoginRequest;
+import app.exchange.req.RegisterRequest;
 import app.exchange.res.LoginResponse;
+import app.exchange.res.RegisterResponse;
 import app.util.data.Serialization;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.cluster.messaging.impl.NettyMessagingService;
@@ -33,6 +35,9 @@ public class CentralService {
 
         this.executorService = Executors.newScheduledThreadPool(centralThreadPoolSize.intValue());
         this.messagingService = new NettyMessagingService(centralID, Address.from((int) centralNetwork.replyPort), new MessagingConfig());
+
+        this.centralNetwork = centralNetwork;
+        this.centralUtils = centralUtils;
     }
 
     public void start() {
@@ -45,6 +50,7 @@ public class CentralService {
     public void registerHandlers() {
 
         this.register_node_login_request();
+        this.register_node_register_request();
     }
 
     public void sendBytesAsync(byte[] bytes, String type, Address address) {
@@ -57,7 +63,7 @@ public class CentralService {
 
     public void register_node_login_request() {
 
-        this.messagingService.registerHandler("node_login_request", (address, requestBytes) -> {
+        this.messagingService.registerHandler(ServiceConstants.NODE_LOGIN_REQUEST, (address, requestBytes) -> {
 
             try {
 
@@ -67,9 +73,36 @@ public class CentralService {
 
                 LoginResponse loginResponse = centralUtils.login_node(loginRequest);
 
+                loginResponse.messageID = loginRequest.messageID;
+                
                 byte[] responseBytes = Serialization.serialize(loginResponse);
 
-                this.sendBytesAsync(responseBytes, "central_login_response", address);
+                this.sendBytesAsync(responseBytes, ServiceConstants.CENTRAL_LOGIN_RESPONSE, address);
+            
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_node_register_request() {
+
+        this.messagingService.registerHandler(ServiceConstants.NODE_REGISTER_REQUEST, (address, requestBytes) -> {
+
+            try {
+
+                RegisterRequest registerRequest = null;
+
+                registerRequest = (RegisterRequest) Serialization.deserialize(requestBytes);
+                
+                RegisterResponse registerResponse = centralUtils.register_node(registerRequest);
+
+                registerResponse.messageID = registerRequest.messageID;
+                
+                byte[] responseBytes = Serialization.serialize(registerResponse);
+
+                this.sendBytesAsync(responseBytes, ServiceConstants.CENTRAL_REGISTER_RESPONSE, address);
             
             } catch (Exception e) {
                 e.printStackTrace();

@@ -12,11 +12,17 @@ public class GUI {
 
     public static void buildMenu(List<String> options) {
 
-        System.out.println("Node menu:\n");
+        System.out.println("-------------------------------------------------");
+        System.out.println("Node menu (write a command):\n");
 
         int menuItemID = 0;
         for (String opt: options) {
-            System.out.println(menuItemID + ": " + opt);
+            System.out.println(menuItemID++ + ": " + opt);
         }
+        System.out.println();
+    }
+
+    public static void showMessageFromNode(String nodeID, String message) {
+        System.out.println("(node:"+nodeID+") " + message + "...");
     }
 }

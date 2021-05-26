@@ -1,9 +1,12 @@
 package app.central.usernode;
 
 
+import java.io.Serializable;
 import java.util.*;
 
-public class NodeNetwork {
+public class NodeNetwork implements Serializable {
+    
+    private static final long serialVersionUID = 1234567L;
     
     public String host;
     public long pubPort;

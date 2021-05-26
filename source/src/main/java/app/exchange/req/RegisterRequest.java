@@ -9,6 +9,8 @@ import app.exchange.MessageWrapper;
 
 public class RegisterRequest extends MessageWrapper implements Serializable {
 
+    private static final long serialversionUID = 129348938L;
+
     public String nodeId;
     public NodeNetwork network;
 
@@ -16,4 +18,13 @@ public class RegisterRequest extends MessageWrapper implements Serializable {
         this.nodeId = nodeId;
         this.network = network;
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+            " nodeId='" + this.nodeId + "'" +
+            ", network='" + this.network + "'" +
+            "}";
+    }
+
 }
