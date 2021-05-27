@@ -2,8 +2,12 @@
 
 package app.node;
 
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import org.zeromq.ZContext;
+
+import app.central.usernode.IpPort;
 import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.res.LoginResponse;
@@ -13,6 +17,8 @@ import app.node.persist.NodeDatabase;
 import app.node.runnable.CentralNotificationRunnable;
 import app.node.runnable.GUIRunnable;
 import app.node.runnable.PubRunnable;
+import app.node.runnable.SubRunnable;
+import app.node.runnable.TimelineRunnable;
 import app.node.services.NodeService;
 import app.util.config.ConfigReader;
 import app.util.gui.GUI;
@@ -23,6 +29,8 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 public class Node {
+
+    private static boolean processedSignUp = false;
 
     private static Namespace setup_argparser(String[] args) {
 
@@ -60,9 +68,7 @@ public class Node {
         return ns;
     }
 
-    public static boolean process_signup(CentralAPI centralAPI, String nodeID, Namespace progArgs) {
-
-        boolean processedSignUp = false;
+    public static LoginResponse process_signup(CentralAPI centralAPI, String nodeID, Namespace progArgs) {
 
         try {
 
@@ -105,8 +111,11 @@ public class Node {
     
                 if (loginResponse instanceof LoginResponse && loginResponse.statusCode == true) {
                     
-                    // login ok, start zeromq
+                    LoginResponse logRes = (LoginResponse) loginResponse;
+
                     processedSignUp = true;
+
+                    return logRes;
                     
                 } else if (!loginResponse.statusCode) {
     
@@ -126,7 +135,7 @@ public class Node {
             e.printStackTrace();
         }
 
-        return processedSignUp;
+        return null;
     }
 
     public static void main(String[] args) throws Exception {
@@ -164,20 +173,40 @@ public class Node {
 
         // process sign-in/sign-up
 
-        boolean processedSignUp = process_signup(centralAPI, nodeID, progArgs);
+        LoginResponse loginResponse = process_signup(centralAPI, nodeID, progArgs);
 
         if (processedSignUp) {
 
             GUI.showMessageFromNode(nodeID, "info: sign up processed, node is listenning for user input...");
 
-            // checks for posts inproc and publishes data
-            new Thread(new PubRunnable(nodeNetwork)).start();
+            Set<IpPort> subPorts = null;
+            Set<String> subKeys = null;
 
-            // checks for central pull notifications
-            new Thread(new CentralNotificationRunnable(nodeID, nodeNetwork)).start();
+            if (progArgs.getBoolean("register"))
+                subPorts = null;
+            else if (progArgs.getBoolean("login")) {
+                subPorts = loginResponse.connections;
+                subKeys = loginResponse.recoveryPorts.keySet();
+            }
 
-            // checks for user input
-            new Thread(new GUIRunnable(nodeID, centralAPI, nodeNetwork, nodeDatabase)).start();
+            try (ZContext ctx = new ZContext()) {
+
+                // run timeline thread for presenting ordered messages
+                new Thread(new TimelineRunnable(ctx, nodeID)).start();
+
+                // checks for posts inproc and publishes data
+                new Thread(new PubRunnable(ctx, nodeNetwork)).start();
+
+                // check for subscription messages
+                SubRunnable subRunnable = new SubRunnable(ctx, subPorts, subKeys);
+                subRunnable.start();
+
+                // checks for central pull notifications
+                new Thread(new CentralNotificationRunnable(ctx, nodeID, nodeNetwork)).start();
+
+                // checks for user input
+                (new GUIRunnable(ctx, nodeID, centralAPI, nodeNetwork, nodeDatabase, subRunnable)).run();
+            }
         }
     }
 }

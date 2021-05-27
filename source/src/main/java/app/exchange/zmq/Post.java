@@ -5,12 +5,8 @@ import java.util.Map;
 
 import com.google.gson.Gson;
 
-import app.exchange.MessageWrapper;
-
-public class Post extends MessageWrapper implements Serializable {
+public class Post implements Serializable {
     
-    private static final long serialversionUID = 129348938L;
-
     private String message;
     private Map<String, Long> subscriptionClocks;
 
@@ -24,7 +20,7 @@ public class Post extends MessageWrapper implements Serializable {
         return (new Gson()).toJson(this);
     }
 
-    public Post fromJSON(String json) {
+    public static Post fromJSON(String json) {
 
         return (new Gson()).fromJson(json, Post.class);
     }

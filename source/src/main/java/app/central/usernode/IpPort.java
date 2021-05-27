@@ -15,7 +15,6 @@ public class IpPort implements Serializable {
         this.port = port;
     }
 
-
     @Override
     public boolean equals(Object o) {
         if (o == this)
@@ -31,6 +30,4 @@ public class IpPort implements Serializable {
     public int hashCode() {
         return Objects.hash(ip, port);
     }
-
-
 }

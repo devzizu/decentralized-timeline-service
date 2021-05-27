@@ -10,9 +10,11 @@ import app.exchange.ServiceConstants;
 import app.exchange.req.LoginRequest;
 import app.exchange.req.LogoutRequest;
 import app.exchange.req.RegisterRequest;
+import app.exchange.req.SubscribeRequest;
 import app.exchange.res.LoginResponse;
 import app.exchange.res.LogoutResponse;
 import app.exchange.res.RegisterResponse;
+import app.exchange.res.SubscribeResponse;
 import app.util.data.Serialization;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.cluster.messaging.impl.NettyMessagingService;
@@ -54,6 +56,7 @@ public class CentralService {
         this.register_node_login_request();
         this.register_node_register_request();
         this.register_node_logout_request();
+        this.register_node_subscribe_request();
     }
 
     public void sendBytesAsync(byte[] bytes, String type, Address address) {
@@ -131,6 +134,31 @@ public class CentralService {
                 byte[] responseBytes = Serialization.serialize(logoutResponse);
 
                 this.sendBytesAsync(responseBytes, ServiceConstants.CENTRAL_LOGOUT_RESPONSE, address);
+            
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_node_subscribe_request() {
+
+        this.messagingService.registerHandler(ServiceConstants.NODE_SUBSCRIBE_REQUEST, (address, requestBytes) -> {
+
+            try {
+
+                SubscribeRequest subRequest = null;
+
+                subRequest = (SubscribeRequest) Serialization.deserialize(requestBytes);
+                
+                SubscribeResponse subResponse = centralUtils.subscribe_node(subRequest);
+
+                subResponse.messageID = subRequest.messageID;
+                
+                byte[] responseBytes = Serialization.serialize(subResponse);
+
+                this.sendBytesAsync(responseBytes, ServiceConstants.CENTRAL_SUBSCRIBE_RESPONSE, address);
             
             } catch (Exception e) {
                 e.printStackTrace();

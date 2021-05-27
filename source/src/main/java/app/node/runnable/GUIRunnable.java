@@ -14,6 +14,7 @@ import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.ServiceConstants;
 import app.exchange.res.LogoutResponse;
+import app.exchange.res.SubscribeResponse;
 import app.exchange.zmq.Post;
 import app.node.api.CentralAPI;
 import app.node.persist.NodeDatabase;
@@ -25,21 +26,26 @@ public class GUIRunnable implements Runnable {
     private CentralAPI centralAPI;
     private NodeNetwork nodeNetwork;
     private NodeDatabase nodeDatabase;
+    private SubRunnable subRunnable;
+    private ZContext context;
 
-    private static HashSet<String> menuOptions = new HashSet<>(Arrays.asList("logout", "timeline", "post <message>", "subscribe <nodeID>"));
+    private static HashSet<String> menuOptions = new HashSet<>(Arrays.asList(
+        "logout", "timeline", "post", "subscribe"
+    ));
     
-    public GUIRunnable(String nodeID, CentralAPI centralAPI, NodeNetwork nodeNetwork, NodeDatabase nodeDatabase) {
+    public GUIRunnable(ZContext context, String nodeID, CentralAPI centralAPI, NodeNetwork nodeNetwork, NodeDatabase nodeDatabase, SubRunnable subRunnable) {
         this.nodeID = nodeID;
         this.centralAPI = centralAPI;
         this.nodeNetwork = nodeNetwork;
         this.nodeDatabase = nodeDatabase;
+        this.subRunnable = subRunnable;
+        this.context = context;
     }
 
     @Override
     public void run() {
 
-        try (ZContext context = new ZContext();
-             ZMQ.Socket inProcPushToPub = context.createSocket(SocketType.PUSH))
+        try (ZMQ.Socket inProcPushToPub = context.createSocket(SocketType.PUSH))
         {
 
             inProcPushToPub.connect("inproc://"+ServiceConstants.INPROC_PUB);
@@ -86,13 +92,33 @@ public class GUIRunnable implements Runnable {
 
                     } else if (option.startsWith("subscribe ")) {
                         
-                        //todo
+                        if (optionParts.length == 2) {
+
+                            CompletableFuture<MessageWrapper> futureSubResponse = centralAPI.central_subscribe(optionParts[1]);
+    
+                            MessageWrapper subResponse = futureSubResponse.get();
+
+                            GUI.showMessageFromNode(nodeID, "warn: got subscription answer from central:");
+                            GUI.showMessageFromNode(nodeID, subResponse.toString());
+
+                            if (subResponse instanceof SubscribeResponse && subResponse.statusCode == true) {
+
+                                SubscribeResponse subResCast = (SubscribeResponse) subResponse;
+
+                                this.subRunnable.subscribe(optionParts[1], subResCast.connectionForPub);
+                            }
+
+                        } else {
+                            GUI.showMessageFromNode(nodeID, "you should do: subscribe <node>");
+                        }
 
                     } else if (option.startsWith("post ")) {
 
-                        Post newPost = new Post(String.join(" ", Arrays.copyOfRange(optionParts, 1, optionParts.length - 1)), this.nodeDatabase.subscriptionClocks);
+                        Post newPost = new Post(String.join(" ", Arrays.copyOfRange(optionParts, 1, optionParts.length)), this.nodeDatabase.subscriptionClocks);
 
                         String messageToPost = this.nodeID + "#" + newPost.toJSON();
+
+                        System.out.println("in gui:"+messageToPost);
 
                         inProcPushToPub.send(messageToPost);
                     }

@@ -10,27 +10,27 @@ import app.exchange.*;
 
 public class PubRunnable implements Runnable {
 
+    private ZContext context;
     private NodeNetwork nodeNetwork;
 
-    public PubRunnable(NodeNetwork nodeNetwork) {
+    public PubRunnable(ZContext context, NodeNetwork nodeNetwork) {
         this.nodeNetwork = nodeNetwork;
+        this.context = context;
     }
 
     @Override
     public void run(){
-        try(ZContext context = new ZContext();
-        ZMQ.Socket inProcPull = context.createSocket(SocketType.PULL);
-        ZMQ.Socket pubSocket = context.createSocket(SocketType.PULL)){
+        try(ZMQ.Socket inProcPull = context.createSocket(SocketType.PULL);
+            ZMQ.Socket pubSocket = context.createSocket(SocketType.PUB)) {
 
             inProcPull.bind("inproc://"+ServiceConstants.INPROC_PUB);
             pubSocket.bind("tcp://"+nodeNetwork.host+":"+nodeNetwork.pubPort);
 
             while(true) {
-                
                 byte[] postBytes = inProcPull.recv();
-
+                System.out.println("sent:"+(new String(postBytes)));
+                pubSocket.send(postBytes);
             }
-
         }
     }
 }

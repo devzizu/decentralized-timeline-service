@@ -9,6 +9,7 @@ import app.exchange.ServiceConstants;
 import app.exchange.res.LoginResponse;
 import app.exchange.res.LogoutResponse;
 import app.exchange.res.RegisterResponse;
+import app.exchange.res.SubscribeResponse;
 import app.util.data.Serialization;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.cluster.messaging.impl.NettyMessagingService;
@@ -53,6 +54,7 @@ public class NodeService {
         this.register_central_login_response();
         this.register_central_register_response();
         this.register_central_logout_response();
+        this.register_subscribe_response();
     }
 
     public void register_central_login_response() {
@@ -104,6 +106,25 @@ public class NodeService {
                 logoutResponse = (LogoutResponse) Serialization.deserialize(requestBytes);
                 
                 this.centralResponses.complete(logoutResponse);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_subscribe_response() {
+
+        this.messagingService.registerHandler(ServiceConstants.CENTRAL_SUBSCRIBE_RESPONSE, (address, requestBytes) -> {
+
+            try {
+
+                SubscribeResponse subResponse = null;
+
+                subResponse = (SubscribeResponse) Serialization.deserialize(requestBytes);
+                
+                this.centralResponses.complete(subResponse);
 
             } catch (Exception e) {
                 e.printStackTrace();

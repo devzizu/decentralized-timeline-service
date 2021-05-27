@@ -13,11 +13,17 @@ public class SubscribeRequest extends MessageWrapper implements Serializable {
 
     public String subscription;
 
-
     public SubscribeRequest(String nodeId, String subscription) {
         this.nodeId = nodeId;
         this.subscription = subscription;
+    }  
+
+    @Override
+    public String toString() {
+        return "subrequest = {" +
+            " nodeId='" + this.nodeId + "'" +
+            ", subscription='" + this.subscription + "'" +
+            "}";
     }
 
-    
 }

@@ -13,18 +13,19 @@ public class CentralNotificationRunnable implements Runnable {
 
     private NodeNetwork nodeNetwork;
     private String nodeID;
+    private ZContext context;
 
-    public CentralNotificationRunnable(String nodeID, NodeNetwork nodeNetwork) {
+    public CentralNotificationRunnable(ZContext context, String nodeID, NodeNetwork nodeNetwork) {
 
         this.nodeNetwork = nodeNetwork;
+        this.context = context;
         this.nodeID = nodeID;
     }
 
     @Override
     public void run() {
 
-        try (ZContext context = new ZContext();
-             ZMQ.Socket pullSocket = context.createSocket(SocketType.PULL))
+        try (ZMQ.Socket pullSocket = context.createSocket(SocketType.PULL))
         {
 
             pullSocket.bind("tcp://"+nodeNetwork.host+":" + nodeNetwork.pullPort);

@@ -9,9 +9,7 @@ import java.util.Set;
 import app.central.usernode.IpPort;
 import app.exchange.MessageWrapper;
 
-public class LoginResponse extends MessageWrapper implements Serializable {
-    
-    private static final long serialversionUID = 129348938L;
+public class LoginResponse extends MessageWrapper {
     
     public Set<IpPort> connections;
     public Map<String, IpPort> recoveryPorts;

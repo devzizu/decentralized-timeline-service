@@ -8,6 +8,7 @@ import app.exchange.ServiceConstants;
 import app.exchange.req.LoginRequest;
 import app.exchange.req.LogoutRequest;
 import app.exchange.req.RegisterRequest;
+import app.exchange.req.SubscribeRequest;
 import app.node.persist.NodeDatabase;
 import app.node.services.FutureResponses;
 import app.node.services.NodeService;
@@ -105,6 +106,35 @@ public class CentralAPI {
             futureResponses.addPending(logoutResponseFuture);
 
             return logoutResponseFuture;
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    public CompletableFuture<MessageWrapper> central_subscribe(String subNodeID) {
+
+        FutureResponses futureResponses = this.nodeService.getFutureResponses();
+
+        try {
+
+            SubscribeRequest subRequest = new SubscribeRequest(nodeDatabase.node_id, subNodeID);
+            
+            System.out.println(subRequest.toString());
+
+            subRequest.messageID = futureResponses.getId();
+
+            byte[] requestBytes = Serialization.serialize(subRequest);
+
+            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.NODE_SUBSCRIBE_REQUEST, this.centralAddress);
+
+            CompletableFuture<MessageWrapper> subResponseFuture = new CompletableFuture<>();
+
+            futureResponses.addPending(subResponseFuture);
+
+            return subResponseFuture;
 
         } catch(Exception e) {
             e.printStackTrace();

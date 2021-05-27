@@ -5,9 +5,7 @@ import java.io.Serializable;
 
 import app.exchange.MessageWrapper;
 
-public class LogoutResponse extends MessageWrapper implements Serializable {
-
-    private static final long serialversionUID = 129348938L;
+public class LogoutResponse extends MessageWrapper {
 
     public String nodeId;
 
@@ -22,5 +20,4 @@ public class LogoutResponse extends MessageWrapper implements Serializable {
             super.toString() + 
             "}";
     }
-
 }

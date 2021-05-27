@@ -85,22 +85,61 @@ public class CentralUtils {
         }
     }
 
-    public IpPort subscribe_node(String subscriber, String subscription){
+    public SubscribeResponse subscribe_node(SubscribeRequest request) {
+
+        String subscriber = request.nodeId;
+        String subscription = request.subscription;
 
         UserNode userSubscriber = redisConnector.getNode(subscriber);
         UserNode userSubscription = redisConnector.getNode(subscription);
 
-        if(userSubscriber==null || userSubscription==null || !(userSubscriber.online)) return null;
-
-        else{
-            if(userSubscriber.subscriptions.contains(subscription)) return null;
+        if(userSubscriber==null || userSubscription==null || !(userSubscriber.online)){
             
-            else{
+            SubscribeResponse subRes = new SubscribeResponse(null);
+
+            subRes.setStatusCode(false);
+            subRes.setStatusMessage("oops something went wrong! mirs on the way!");
+            
+            return subRes;
+
+        } else {
+
+            if (userSubscriber.subscriptions.contains(subscription)) {
+                
+                SubscribeResponse subRes = new SubscribeResponse(null);
+
+                subRes.setStatusCode(false);
+                subRes.setStatusMessage("already subscribed");
+            
+                return subRes;
+            
+            } else {
+
+                String electedUsername = electNode2Connect(subscription);
+                
+                UserNode electedNode = null;
+                if (!electedUsername.equals(userSubscription.username)) {    
+                    electedNode = redisConnector.getNode(electedUsername);                                                 
+                } else {
+                    electedNode = userSubscription;
+                }
+
                 userSubscriber.subscriptions.add(subscription);
                 userSubscription.subscribers.add(subscriber);
-                UserNode electedNode = redisConnector.getNode(electNode2Connect(subscription));
-                electedNode.connections.add(new Connection(subscription,subscriber));
-                return new IpPort(electedNode.network.host,electedNode.network.pubPort); //info a quem tem que se ligar para receber os posts
+                
+                electedNode.connections.add(new Connection(subscription,subscriber));                
+
+                redisConnector.setNode(userSubscriber.username, userSubscriber);
+                redisConnector.setNode(userSubscription.username, userSubscription);
+                
+                if (!electedNode.username.equals(userSubscription.username))
+                    redisConnector.setNode(electedNode.username, electedNode); 
+                
+                SubscribeResponse subRes = new SubscribeResponse(new IpPort(electedNode.network.host,electedNode.network.pubPort));
+                subRes.setStatusCode(true);
+                subRes.setStatusMessage("sub ok");
+
+                return subRes;
             }
         }
     }
@@ -145,8 +184,8 @@ public class CentralUtils {
         return response;
     }
 
-    private String electNode2Connect(String Subscription){
-        return ""; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
+    private String electNode2Connect(String subscription){
+        return subscription; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
                    //consoante um certo raciocínio
     }
 
