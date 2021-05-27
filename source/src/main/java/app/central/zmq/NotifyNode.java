@@ -21,8 +21,12 @@ public class NotifyNode{
             message.setStatusMessage("your provider of the subscriptions "+subscription+" went offline.");
             
             socket.send(Serialization.serialize(message));
-        }
-        catch(Exception e){
+
+            socket.close();
+
+            context.close();
+        
+        } catch(Exception e){
             e.printStackTrace();
         }
     }

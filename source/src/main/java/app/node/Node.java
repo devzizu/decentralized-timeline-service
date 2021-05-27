@@ -2,20 +2,17 @@
 
 package app.node;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
-import app.central.Central;
 import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.res.LoginResponse;
 import app.exchange.res.RegisterResponse;
 import app.node.api.CentralAPI;
 import app.node.persist.NodeDatabase;
+import app.node.runnable.CentralNotificationRunnable;
+import app.node.runnable.GUIRunnable;
+import app.node.runnable.PubRunnable;
 import app.node.services.NodeService;
 import app.util.config.ConfigReader;
 import app.util.gui.GUI;
@@ -63,6 +60,75 @@ public class Node {
         return ns;
     }
 
+    public static boolean process_signup(CentralAPI centralAPI, String nodeID, Namespace progArgs) {
+
+        boolean processedSignUp = false;
+
+        try {
+
+            if (progArgs.getBoolean("register")) {
+
+                // register in central node
+    
+                GUI.showMessageFromNode(nodeID, "warn: register request sent");
+                
+                CompletableFuture<MessageWrapper> futureRegisterResponse = centralAPI.central_register();
+    
+                MessageWrapper registerResponse = futureRegisterResponse.get();
+    
+                GUI.showMessageFromNode(nodeID, "warn: got response from register:");
+                GUI.showMessageFromNode(nodeID, registerResponse.toString());
+    
+                if (registerResponse instanceof RegisterResponse && registerResponse.statusCode == true) {
+    
+                    // register ok, start zeromq
+                    processedSignUp = true;
+    
+                } else if (!registerResponse.statusCode) {
+    
+                    GUI.showMessageFromNode(nodeID, "info: exiting...");
+                    System.exit(0);
+                }
+    
+            } else if (progArgs.getBoolean("login")) {
+    
+                // login in central node
+    
+                GUI.showMessageFromNode(nodeID, "warn: login request sent");
+    
+                CompletableFuture<MessageWrapper> futureLoginResponse = centralAPI.central_login();
+    
+                MessageWrapper loginResponse = futureLoginResponse.get();
+    
+                GUI.showMessageFromNode(nodeID, "warn: got response from login:");
+                GUI.showMessageFromNode(nodeID, loginResponse.toString());
+    
+                if (loginResponse instanceof LoginResponse && loginResponse.statusCode == true) {
+                    
+                    // login ok, start zeromq
+                    processedSignUp = true;
+                    
+                } else if (!loginResponse.statusCode) {
+    
+                    GUI.showMessageFromNode(nodeID, "info: exiting...");
+                    System.exit(0);
+                }
+    
+            } else {
+    
+                // invalid run option
+                GUI.showMessageFromNode(nodeID, "error: please provide valid arguments");
+                
+                processedSignUp = false;
+            }
+    
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return processedSignUp;
+    }
+
     public static void main(String[] args) throws Exception {
 
         GUI.clearScreen(); 
@@ -98,119 +164,20 @@ public class Node {
 
         // process sign-in/sign-up
 
-        boolean processedSignUp = false;
-
-        if (progArgs.getBoolean("register")) {
-
-            // register in central node
-
-            GUI.showMessageFromNode(nodeID, "warn: register request sent");
-            
-            CompletableFuture<MessageWrapper> futureRegisterResponse = centralAPI.central_register();
-
-            MessageWrapper registerResponse = futureRegisterResponse.get();
-
-            GUI.showMessageFromNode(nodeID, "warn: got response from register:");
-            GUI.showMessageFromNode(nodeID, registerResponse.toString());
-
-            if (registerResponse instanceof RegisterResponse && registerResponse.statusCode == true) {
-
-                // register ok, start zeromq
-                processedSignUp = true;
-
-            } else if (!registerResponse.statusCode) {
-
-                GUI.showMessageFromNode(nodeID, "info: exiting...");
-                System.exit(0);
-            }
-
-        } else if (progArgs.getBoolean("login")) {
-
-            // login in central node
-
-            GUI.showMessageFromNode(nodeID, "warn: login request sent");
-
-            CompletableFuture<MessageWrapper> futureLoginResponse = centralAPI.central_login();
-
-            MessageWrapper loginResponse = futureLoginResponse.get();
-
-            GUI.showMessageFromNode(nodeID, "warn: got response from login:");
-            GUI.showMessageFromNode(nodeID, loginResponse.toString());
-
-            if (loginResponse instanceof LoginResponse && loginResponse.statusCode == true) {
-                
-                // login ok, start zeromq
-                processedSignUp = true;
-                
-            } else if (!loginResponse.statusCode) {
-
-                GUI.showMessageFromNode(nodeID, "info: exiting...");
-                System.exit(0);
-            }
-
-        } else {
-
-            // invalid run option
-            GUI.showMessageFromNode(nodeID, "error: please provide valid arguments");
-        }
+        boolean processedSignUp = process_signup(centralAPI, nodeID, progArgs);
 
         if (processedSignUp) {
 
             GUI.showMessageFromNode(nodeID, "info: sign up processed, node is listenning for user input...");
-            
-            new Thread(new GUIRunnable(nodeID, centralAPI)).start();
-        }
 
-    }
+            // checks for posts inproc and publishes data
+            new Thread(new PubRunnable(nodeNetwork)).start();
 
-    private static class GUIRunnable implements Runnable {
+            // checks for central pull notifications
+            new Thread(new CentralNotificationRunnable(nodeID, nodeNetwork)).start();
 
-        private String nodeID;
-        private CentralAPI centralAPI;
-
-        private static HashSet<String> menuOptions = new HashSet<>(Arrays.asList("logout", "timeline", "subscribe <nodeID>"));
-        
-        public GUIRunnable(String nodeID, CentralAPI centralAPI) {
-            this.nodeID = nodeID;
-            this.centralAPI = centralAPI;
-        }
-
-        @Override
-        public void run() {
-
-            boolean continueDisplaying = true;
-            Scanner sysin = new Scanner(System.in);
-            
-            do {
-
-                System.out.println();
-
-                GUI.buildMenu(new ArrayList<>(menuOptions));
-
-                System.out.print("> ");
-                String option = sysin.nextLine();
-
-                if (menuOptions.contains(option)) {
-
-                    if (option.equals("logout")) {
-
-                        GUI.showMessageFromNode(nodeID, "contacting central for logout...");
-
-                        continueDisplaying = false;
-
-                    } else if (option.equals("timeline")) {
-                        //todo
-                    } else if (option.startsWith("subscribe ")) {
-                        //todo
-                    }
-
-                } else {
-                    GUI.showMessageFromNode(nodeID, "error: command <" + option + "> invalid");
-                }
-
-            } while(continueDisplaying);
-            
-            sysin.close();
+            // checks for user input
+            new Thread(new GUIRunnable(nodeID, centralAPI, nodeNetwork, nodeDatabase)).start();
         }
     }
 }

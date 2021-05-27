@@ -4,6 +4,7 @@ import java.util.*;
 
 import app.central.store.RedisUtils;
 import app.central.usernode.*;
+import app.central.zmq.*;
 import app.exchange.req.*;
 import app.exchange.res.*;
 
@@ -54,6 +55,7 @@ public class CentralUtils {
         } else {
             user.online = true;
             user.network = loginRequest.network;
+            user.connections.clear();
 
             Set<IpPort> connecting = new HashSet<>();
             Map<String,IpPort> recoverPorts = new HashMap<>();
@@ -71,6 +73,8 @@ public class CentralUtils {
                     recoverPorts.put(subscription, new IpPort(electedNode.network.host,electedNode.network.replyPort)); //porta de reply para fazer o recover da subscrição
                 }
             }
+
+            redisConnector.setNode(loginRequest.nodeID, user);
 
             LoginResponse res = new LoginResponse(connecting, recoverPorts);
 
@@ -101,24 +105,44 @@ public class CentralUtils {
         }
     }
 
-    public void logout_node(String username){
+    public LogoutResponse logout_node(LogoutRequest request){
+        String username = request.nodeId;
+
         UserNode user = redisConnector.getNode(username);
 
-        if(user==null || !user.online) return;
+        if(user==null || !user.online){ 
+            LogoutResponse res = new LogoutResponse(username);
+            res.setStatusCode(false);
+            res.setStatusMessage("something went wrong!");
+            return res;
+        }
 
         user.online = false;
+
+        redisConnector.setNode(username, user);
         
         for(Connection c : user.connections){
-            //TODO temos que ter em atenção que este nodo que está a fazer logout não ser considerado
+            //TODO temos que ter em atenção que este nodo que está a fazer logout não pode ser considerado na eleição
             String newConnection = electNode2Connect(c.origin_node);
 
             UserNode nc = redisConnector.getNode(newConnection);
 
+            UserNode dependent = redisConnector.getNode(c.dependent_node);
+
             IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
 
-            //TODO send to c.dependentNode the IpPort (using the push-pull channel)
-        }
+            NotifyNode.notify(dependent.network.host, dependent.network.pullPort, c.origin_node, newPorts);
 
+            nc.connections.add(new Connection(c.origin_node,c.dependent_node));
+
+            redisConnector.setNode(newConnection, nc);
+        }
+        
+        LogoutResponse response = new LogoutResponse(username);
+        response.setStatusCode(true);
+        response.setStatusMessage("logout ok");
+        
+        return response;
     }
 
     private String electNode2Connect(String Subscription){

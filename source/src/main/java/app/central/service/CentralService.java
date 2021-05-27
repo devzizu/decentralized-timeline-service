@@ -8,8 +8,10 @@ import app.central.util.CentralUtils;
 import app.util.config.ConfigReader;
 import app.exchange.ServiceConstants;
 import app.exchange.req.LoginRequest;
+import app.exchange.req.LogoutRequest;
 import app.exchange.req.RegisterRequest;
 import app.exchange.res.LoginResponse;
+import app.exchange.res.LogoutResponse;
 import app.exchange.res.RegisterResponse;
 import app.util.data.Serialization;
 import io.atomix.cluster.messaging.MessagingConfig;
@@ -51,6 +53,7 @@ public class CentralService {
 
         this.register_node_login_request();
         this.register_node_register_request();
+        this.register_node_logout_request();
     }
 
     public void sendBytesAsync(byte[] bytes, String type, Address address) {
@@ -103,6 +106,31 @@ public class CentralService {
                 byte[] responseBytes = Serialization.serialize(registerResponse);
 
                 this.sendBytesAsync(responseBytes, ServiceConstants.CENTRAL_REGISTER_RESPONSE, address);
+            
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_node_logout_request() {
+
+        this.messagingService.registerHandler(ServiceConstants.NODE_LOGOUT_REQUEST, (address, requestBytes) -> {
+
+            try {
+
+                LogoutRequest logoutRequest = null;
+
+                logoutRequest = (LogoutRequest) Serialization.deserialize(requestBytes);
+                
+                LogoutResponse logoutResponse = centralUtils.logout_node(logoutRequest);
+
+                logoutResponse.messageID = logoutRequest.messageID;
+                
+                byte[] responseBytes = Serialization.serialize(logoutResponse);
+
+                this.sendBytesAsync(responseBytes, ServiceConstants.CENTRAL_LOGOUT_RESPONSE, address);
             
             } catch (Exception e) {
                 e.printStackTrace();

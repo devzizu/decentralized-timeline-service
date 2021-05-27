@@ -7,6 +7,7 @@ import app.central.usernode.NodeNetwork;
 import app.util.config.ConfigReader;
 import app.exchange.ServiceConstants;
 import app.exchange.res.LoginResponse;
+import app.exchange.res.LogoutResponse;
 import app.exchange.res.RegisterResponse;
 import app.util.data.Serialization;
 import io.atomix.cluster.messaging.MessagingConfig;
@@ -51,6 +52,7 @@ public class NodeService {
 
         this.register_central_login_response();
         this.register_central_register_response();
+        this.register_central_logout_response();
     }
 
     public void register_central_login_response() {
@@ -63,9 +65,7 @@ public class NodeService {
 
                 loginResponse = (LoginResponse) Serialization.deserialize(requestBytes);
                 
-                int messageID = this.centralResponses.complete(loginResponse);
-
-                System.out.println("(node:"+this.nodeID+") received " + ServiceConstants.CENTRAL_LOGIN_RESPONSE + " for messageID " + messageID);
+                this.centralResponses.complete(loginResponse);
 
             } catch (Exception e) {
                 e.printStackTrace();
@@ -84,9 +84,26 @@ public class NodeService {
 
                 registerResponse = (RegisterResponse) Serialization.deserialize(requestBytes);
                 
-                int messageID = this.centralResponses.complete(registerResponse);
+                this.centralResponses.complete(registerResponse);
 
-                System.out.println("(node:"+this.nodeID+") received " + ServiceConstants.CENTRAL_REGISTER_RESPONSE + " for messageID " + messageID);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_central_logout_response() {
+
+        this.messagingService.registerHandler(ServiceConstants.CENTRAL_LOGOUT_RESPONSE, (address, requestBytes) -> {
+
+            try {
+
+                LogoutResponse logoutResponse = null;
+
+                logoutResponse = (LogoutResponse) Serialization.deserialize(requestBytes);
+                
+                this.centralResponses.complete(logoutResponse);
 
             } catch (Exception e) {
                 e.printStackTrace();

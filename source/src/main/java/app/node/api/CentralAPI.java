@@ -6,6 +6,7 @@ import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.ServiceConstants;
 import app.exchange.req.LoginRequest;
+import app.exchange.req.LogoutRequest;
 import app.exchange.req.RegisterRequest;
 import app.node.persist.NodeDatabase;
 import app.node.services.FutureResponses;
@@ -91,19 +92,19 @@ public class CentralAPI {
 
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(nodeDatabase.node_id, nodeNetwork);
+            LogoutRequest logoutRequest = new LogoutRequest(nodeDatabase.node_id);
             
-            registerRequest.messageID = futureResponses.getId();
+            logoutRequest.messageID = futureResponses.getId();
 
-            byte[] requestBytes = Serialization.serialize(registerRequest);
+            byte[] requestBytes = Serialization.serialize(logoutRequest);
 
-            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.NODE_REGISTER_REQUEST, this.centralAddress);
+            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.NODE_LOGOUT_REQUEST, this.centralAddress);
 
-            CompletableFuture<MessageWrapper> registerResponseFuture = new CompletableFuture<>();
+            CompletableFuture<MessageWrapper> logoutResponseFuture = new CompletableFuture<>();
 
-            futureResponses.addPending(registerResponseFuture);
+            futureResponses.addPending(logoutResponseFuture);
 
-            return registerResponseFuture;
+            return logoutResponseFuture;
 
         } catch(Exception e) {
             e.printStackTrace();

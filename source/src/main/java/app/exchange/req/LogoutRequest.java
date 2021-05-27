@@ -11,7 +11,6 @@ public class LogoutRequest extends MessageWrapper implements Serializable{
 
     public String nodeId;
 
-
     public LogoutRequest(String nodeId) {
         this.nodeId = nodeId;
     }
