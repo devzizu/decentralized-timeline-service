@@ -1,5 +1,6 @@
 package app.central.util;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 import app.central.store.RedisUtils;
@@ -32,6 +33,11 @@ public class CentralUtils {
 
         } else {
             UserNode user = new UserNode(username, network, true, new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+
+            user.lastSession = new Session(); 
+            user.lastSession.setTimeStart(LocalDateTime.now());
+            user.incrementSessions();
+
             redisConnector.setNode(username,user);
             res.setStatusCode(true);
             res.setStatusMessage("node created");    
@@ -56,6 +62,10 @@ public class CentralUtils {
             user.online = true;
             user.network = loginRequest.network;
             user.connections.clear();
+
+            user.lastSession = new Session(); 
+            user.lastSession.setTimeStart(LocalDateTime.now());
+            user.incrementSessions();
 
             Set<IpPort> connecting = new HashSet<>();
             Map<String,IpPort> recoverPorts = new HashMap<>();
@@ -157,6 +167,9 @@ public class CentralUtils {
         }
 
         user.online = false;
+
+        user.lastSession.setTimeEnd(LocalDateTime.now());
+        user.updateAverageUpTime();
 
         redisConnector.setNode(username, user);
         
