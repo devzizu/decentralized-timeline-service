@@ -36,6 +36,8 @@ public class CentralNotificationRunnable implements Runnable {
 
                 Notification notificationReceived = (Notification) Serialization.deserialize(notificationBytes);
 
+                
+
                 GUI.showMessageFromNode(this.nodeID, "notification:" + notificationReceived.toString());
             }
 

@@ -13,13 +13,13 @@ public class UserNode implements Serializable {
     public boolean online;
     public List<String> subscribers;
     public List<String> subscriptions;
-    public List<Connection> connections;
+    public Map<String,Connection> connections;
 
     public Session lastSession;
     public double averageUpTime;
     public int numberOfSessions;
 
-    public UserNode(String username, NodeNetwork network, boolean online, List<String> subscribers, List<String> subscriptions, List<Connection> connections) {
+    public UserNode(String username, NodeNetwork network, boolean online, List<String> subscribers, List<String> subscriptions, Map<String,Connection> connections) {
         this.username = username;
         this.network = network;
         this.online = online;

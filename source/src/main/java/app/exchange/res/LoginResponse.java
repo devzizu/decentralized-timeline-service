@@ -11,16 +11,16 @@ import app.exchange.MessageWrapper;
 
 public class LoginResponse extends MessageWrapper {
     
-    public Set<IpPort> connections;
+    public Map<String, IpPort> connections;
     public Map<String, IpPort> recoveryPorts;
 
-    public LoginResponse(Set<IpPort> connections, Map<String,IpPort> recoveryPorts) {
+    public LoginResponse(Map<String, IpPort> connections, Map<String,IpPort> recoveryPorts) {
         this.connections = connections;
         this.recoveryPorts = recoveryPorts;
     }
 
     public LoginResponse() {
-        this.connections = new HashSet<>();
+        this.connections = new HashMap<>();
         this.recoveryPorts = new HashMap<>();
     }
 

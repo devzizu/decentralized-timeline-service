@@ -179,14 +179,12 @@ public class Node {
 
             GUI.showMessageFromNode(nodeID, "info: sign up processed, node is listenning for user input...");
 
-            Set<IpPort> subPorts = null;
-            Set<String> subKeys = null;
+            Map<String, IpPort> connectionsMap = null;
+            Map<String, IpPort> recoveryMap = null;
 
-            if (progArgs.getBoolean("register"))
-                subPorts = null;
-            else if (progArgs.getBoolean("login")) {
-                subPorts = loginResponse.connections;
-                subKeys = loginResponse.recoveryPorts.keySet();
+            if (progArgs.getBoolean("login")) {
+                connectionsMap = loginResponse.connections;
+                recoveryMap = loginResponse.recoveryPorts;
             }
 
             try (ZContext ctx = new ZContext()) {
@@ -198,7 +196,7 @@ public class Node {
                 new Thread(new PubRunnable(ctx, nodeNetwork)).start();
 
                 // check for subscription messages
-                SubRunnable subRunnable = new SubRunnable(ctx, subPorts, subKeys);
+                SubRunnable subRunnable = new SubRunnable(ctx, connectionsMap, recoveryMap);
                 subRunnable.start();
 
                 // checks for central pull notifications

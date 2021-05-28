@@ -14,13 +14,13 @@ public class SubRunnable extends Thread {
 
     ZMQ.Socket subSocket;
 
-    private Set<IpPort> connections;
-    private Set<String> subscriptions;
+    private Map<String, IpPort> connectionsMap;
+    private Map<String, IpPort> recoveryMap;
     private ZContext context;
 
-    public SubRunnable (ZContext context, Set<IpPort> conn, Set<String> subscriptions){
-        this.connections = conn;
-        this.subscriptions = subscriptions;
+    public SubRunnable (ZContext context, Map<String, IpPort> conn, Map<String, IpPort> recoveryMap){
+        this.connectionsMap = conn;
+        this.recoveryMap = recoveryMap;
         this.context = context;
     }
 
@@ -36,12 +36,13 @@ public class SubRunnable extends Thread {
             pushSocketPub.connect("inproc://"+ServiceConstants.INPROC_PUB);
             pushSocketTimeline.connect("inproc://"+ServiceConstants.INPROC_TIMELINE);
 
-            if (this.connections != null)
+            if (this.connectionsMap != null) {
                 //conects to all pubs that came from login
-                this.connections.forEach(e -> connect(e));
+                this.connectionsMap.forEach(e -> connect(e.getValue()));
+            }
 
-            if (this.subscriptions != null){
-                this.subscriptions.forEach(e->subscribe(e));
+            if (this.recoveryMap != null) {
+                this.recoveryMap.keySet().forEach(e->subscribe(e));
             }
             
             while(true) {
@@ -60,13 +61,12 @@ public class SubRunnable extends Thread {
 
         connect(ipPort);
 
-        this.subSocket.subscribe(nodeID);
+        this.subSocket.addFilter(nodeID);
     }
 
-    public void subscribe(String nodeID) {
+    public void addFilter(String nodeID) {
         this.subSocket.subscribe(nodeID);
     }
-
 
     public void unsubscribe(String nodeID) {
 

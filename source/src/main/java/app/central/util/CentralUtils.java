@@ -67,7 +67,7 @@ public class CentralUtils {
             user.lastSession.setTimeStart(LocalDateTime.now());
             user.incrementSessions();
 
-            Set<IpPort> connecting = new HashSet<>();
+            Map<String,IpPort> connecting = new HashMap<>();
             Map<String,IpPort> recoverPorts = new HashMap<>();
 
             for(String subscription : user.subscriptions){
@@ -78,7 +78,7 @@ public class CentralUtils {
                     
                     UserNode electedNode = redisConnector.getNode(electNode2Connect(subscription));
                     electedNode.connections.add(new Connection(subscription, loginRequest.nodeID));
-                    connecting.add(new IpPort(electedNode.network.host,electedNode.network.pubPort));
+                    connecting.put(subscription,new IpPort(electedNode.network.host,electedNode.network.pubPort));
 
                     recoverPorts.put(subscription, new IpPort(electedNode.network.host,electedNode.network.replyPort)); //porta de reply para fazer o recover da subscrição
                 }
@@ -198,8 +198,50 @@ public class CentralUtils {
     }
 
     private String electNode2Connect(String subscription){
+
+
+
         return subscription; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
                    //consoante um certo raciocínio
+    }
+
+
+    private String electNode2Connect(String subscription, UserNode subscriber){
+
+        UserNode subscript = redisConnector.getNode(subscription);
+
+        List<UserNode> onSubscribers = getOnlineSubscribers(subscript);
+
+      //  String res = electNode2Connect(onSubscribers, subscript, subscriber);
+
+        
+
+        return subscription; //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
+                   //consoante um certo raciocínio
+    }
+
+
+    //private String electNode2Connect(List<UserNode> onSubscribers, UserNode subscription,UserNode subscriber){
+
+        //for()
+    //}
+
+
+    private List<UserNode> getOnlineSubscribers(UserNode subscription){
+        List<UserNode> result = new ArrayList<>();
+
+        for(String sub : subscription.subscribers){
+            UserNode subscriber = redisConnector.getNode(sub);
+            if(subscriber.online) result.add(subscriber);
+        }
+
+        return res;
+    }
+
+
+    private double points (UserNode candidate, UserNode subscriber){
+        return 0;
+
     }
 
 }
