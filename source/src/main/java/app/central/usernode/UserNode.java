@@ -46,6 +46,14 @@ public class UserNode implements Serializable {
         this.averageUpTime = (this.averageUpTime*(this.numberOfSessions-1) + this.lastSession.getTimeDiffSeconds())/this.numberOfSessions; 
     }
 
+
+    public double getaverageUpTime(){
+        if (averageUpTime == 0 && numberOfSessions == 1){
+            return lastSession.getTimeDiffSeconds();
+        }
+        return averageUpTime;
+    }
+
     @Override
     public String toString() {
         return "{" +

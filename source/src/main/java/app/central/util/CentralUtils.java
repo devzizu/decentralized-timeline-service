@@ -198,25 +198,32 @@ public class CentralUtils {
     
                 UserNode nc = electNode2Connect(onlineSubscribers, originNode, dependent);
 
-                dependent.dependsOn.remove(username);
+                if(nc!=null){
 
-                if(dependent.dependsOn.containsKey(nc.username))
-                    dependent.dependsOn.get(nc.username).add(subscription);
-                else
-                    dependent.dependsOn.put(nc.username, (new HashSet<>(Arrays.asList(subscription))));
+                    System.out.println("nao sou null!!");
 
-                redisConnector.setNode(nc.username, nc);
+                    dependent.dependsOn.remove(username);
 
-                IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
-    
-                NotifyNode.notify(dependent.network.host, dependent.network.pullPort, c.origin_node, newPorts);
-    
-                if (nc.connections.containsKey(c.origin_node))
-                    nc.connections.get(c.origin_node).add(new Connection(c.origin_node,c.dependent_node));
-                else
-                   nc.connections.put(c.origin_node, (new HashSet<>(Arrays.asList(new Connection(c.origin_node,c.dependent_node)))));
+                    if(dependent.dependsOn.containsKey(nc.username))
+                        dependent.dependsOn.get(nc.username).add(subscription);
+                    else
+                        dependent.dependsOn.put(nc.username, (new HashSet<>(Arrays.asList(subscription))));
 
-                redisConnector.setNode(nc.username, nc);
+                    redisConnector.setNode(nc.username, nc);
+
+                    IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
+
+                    System.out.println(dependent.network.toString());
+        
+                    NotifyNode.notify(dependent.network.host, dependent.network.pullPort, c.origin_node, newPorts);
+        
+                    if (nc.connections.containsKey(c.origin_node))
+                        nc.connections.get(c.origin_node).add(new Connection(c.origin_node,c.dependent_node));
+                    else
+                    nc.connections.put(c.origin_node, (new HashSet<>(Arrays.asList(new Connection(c.origin_node,c.dependent_node)))));
+
+                    redisConnector.setNode(nc.username, nc);
+                }
             }
         }
 
@@ -245,8 +252,6 @@ public class CentralUtils {
         UserNode subscript = redisConnector.getNode(subscription);
 
         List<UserNode> onSubscribers = getOnlineSubscribers(subscript);
-
-        System.out.println(onSubscribers);
 
         return electNode2Connect(onSubscribers, subscript, subscriber); //aqui teremos que percorrer a lista de subcritores do parametro subscription e escolher um
                    //consoante um certo raciocínio
@@ -298,6 +303,6 @@ public class CentralUtils {
 
         // avgTime/distance(diference between pub ports)
 
-        return candidate.averageUpTime / Math.abs(subscriber.network.pubPort-candidate.network.pubPort);
+        return candidate.getaverageUpTime() / (double)Math.abs(subscriber.network.pubPort-candidate.network.pubPort);
     }
 }
