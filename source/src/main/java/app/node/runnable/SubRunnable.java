@@ -38,11 +38,16 @@ public class SubRunnable extends Thread {
 
             if (this.connectionsMap != null) {
                 //conects to all pubs that came from login
-                this.connectionsMap.forEach(e -> connect(e.getValue()));
+                for (Map.Entry<String, IpPort> e: this.connectionsMap.entrySet())
+                    connect(e.getValue());
+            } else {
+                this.connectionsMap = new HashMap<>();
             }
 
             if (this.recoveryMap != null) {
-                this.recoveryMap.keySet().forEach(e->subscribe(e));
+                this.recoveryMap.keySet().forEach(e->addSub(e));
+            } else {
+                this.connectionsMap = new HashMap<>();
             }
             
             while(true) {
@@ -57,24 +62,33 @@ public class SubRunnable extends Thread {
     
     public void subscribe(String nodeID, IpPort ipPort) {
 
-        System.out.println("trying to sub: " + nodeID + " " + ipPort);
+        if (this.connectionsMap.containsKey(nodeID)) {
+            IpPort oldIp = this.connectionsMap.get(nodeID);
+            this.connectionsMap.put(nodeID, ipPort);
+            // disconnect from old ip
+            disconnect(oldIp);
+        }
 
+        // connect to new ip
         connect(ipPort);
 
-        this.subSocket.addFilter(nodeID);
-    }
-
-    public void addFilter(String nodeID) {
+        // sub, if not already
         this.subSocket.subscribe(nodeID);
     }
 
-    public void unsubscribe(String nodeID) {
-
+    public void removeSub(String nodeID) {
         this.subSocket.unsubscribe(nodeID);
     }
 
+    public void addSub(String nodeID) {
+        this.subSocket.subscribe(nodeID);
+    }
 
     public void connect(IpPort ipPort){
         subSocket.connect("tcp://"+ipPort.ip+":"+ipPort.port);
+    }
+
+    public void disconnect(IpPort ipPort) {
+        subSocket.disconnect("tcp://"+ipPort.ip+":"+ipPort.port);
     }
 }

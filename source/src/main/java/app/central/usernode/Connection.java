@@ -1,6 +1,7 @@
 package app.central.usernode;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 public class Connection implements Serializable {
 
@@ -23,6 +24,22 @@ public class Connection implements Serializable {
             " origin_node='" + this.origin_node + "'" +
             ", dependent_node='" + this.dependent_node + "'" +
             "}";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == this)
+            return true;
+        if (!(o instanceof Connection)) {
+            return false;
+        }
+        Connection connection = (Connection) o;
+        return Objects.equals(origin_node, connection.origin_node) && Objects.equals(dependent_node, connection.dependent_node);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(origin_node, dependent_node);
     }
 
 }

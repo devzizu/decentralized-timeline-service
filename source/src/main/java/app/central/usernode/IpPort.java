@@ -30,4 +30,13 @@ public class IpPort implements Serializable {
     public int hashCode() {
         return Objects.hash(ip, port);
     }
+
+    @Override
+    public String toString() {
+        return "{" +
+            " ip='" + this.ip + "'" +
+            ", port='" + this.port + "'" +
+            "}";
+    }
+
 }

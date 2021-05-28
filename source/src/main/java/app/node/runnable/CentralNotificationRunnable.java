@@ -14,12 +14,14 @@ public class CentralNotificationRunnable implements Runnable {
     private NodeNetwork nodeNetwork;
     private String nodeID;
     private ZContext context;
+    private SubRunnable subRunnable;
 
-    public CentralNotificationRunnable(ZContext context, String nodeID, NodeNetwork nodeNetwork) {
+    public CentralNotificationRunnable(ZContext context, String nodeID, NodeNetwork nodeNetwork, SubRunnable subRunnable) {
 
         this.nodeNetwork = nodeNetwork;
         this.context = context;
         this.nodeID = nodeID;
+        this.subRunnable = subRunnable;
     }
 
     @Override
@@ -36,9 +38,9 @@ public class CentralNotificationRunnable implements Runnable {
 
                 Notification notificationReceived = (Notification) Serialization.deserialize(notificationBytes);
 
-                
+                GUI.showMessageFromNode(this.nodeID, "central notification: " + notificationReceived.toString());
 
-                GUI.showMessageFromNode(this.nodeID, "notification:" + notificationReceived.toString());
+                this.subRunnable.subscribe(notificationReceived.subscription, notificationReceived.conection);
             }
 
         } catch (Exception e) {

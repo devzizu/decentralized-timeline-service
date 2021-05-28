@@ -2,7 +2,7 @@
 package app.central.usernode;
 
 import java.io.Serializable;
-import java.util.List;
+import java.util.*;
 
 public class UserNode implements Serializable {
 
@@ -13,13 +13,16 @@ public class UserNode implements Serializable {
     public boolean online;
     public List<String> subscribers;
     public List<String> subscriptions;
-    public Map<String,Connection> connections;
+    // origin -> dependsOnMeToGetOrigin
+    public Map<String,Set<Connection>> connections;
+    //dependsOn -> (0..*)origin
+    public Map<String, Set<String>> dependsOn;
 
     public Session lastSession;
     public double averageUpTime;
     public int numberOfSessions;
 
-    public UserNode(String username, NodeNetwork network, boolean online, List<String> subscribers, List<String> subscriptions, Map<String,Connection> connections) {
+    public UserNode(String username, NodeNetwork network, boolean online, List<String> subscribers, List<String> subscriptions, Map<String,Set<Connection>> connections, Map<String, Set<String>> dependsOn) {
         this.username = username;
         this.network = network;
         this.online = online;
@@ -28,6 +31,7 @@ public class UserNode implements Serializable {
         this.connections = connections;
         this.lastSession = null;
         this.numberOfSessions = 0;
+        this.dependsOn = dependsOn;
     }
 
     public void setSession(Session s) {

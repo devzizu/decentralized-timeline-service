@@ -6,9 +6,7 @@ import app.central.usernode.IpPort;
 import app.exchange.MessageWrapper;
 
 
-public class Notification extends MessageWrapper implements Serializable {
-
-    private static final long serialversionUID = 129348938L;
+public class Notification extends MessageWrapper {
 
     public String subscription;
     public IpPort conection;

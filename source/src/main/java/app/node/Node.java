@@ -2,6 +2,7 @@
 
 package app.node;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -200,7 +201,7 @@ public class Node {
                 subRunnable.start();
 
                 // checks for central pull notifications
-                new Thread(new CentralNotificationRunnable(ctx, nodeID, nodeNetwork)).start();
+                new Thread(new CentralNotificationRunnable(ctx, nodeID, nodeNetwork, subRunnable)).start();
 
                 // checks for user input
                 (new GUIRunnable(ctx, nodeID, centralAPI, nodeNetwork, nodeDatabase, subRunnable)).run();

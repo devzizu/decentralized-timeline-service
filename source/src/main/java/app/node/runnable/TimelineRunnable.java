@@ -37,8 +37,7 @@ public class TimelineRunnable implements Runnable {
 
                 Post postMessage = Post.fromJSON(messageParts[1]);
 
-                GUI.showMessageFromNode(nodeID, "Got sub message:");
-                GUI.showMessageFromNode(nodeID, postMessage.toString());
+                GUI.showMessageFromNode(nodeID, "got new post: "+postMessage.toString());
             }
         }
     }

@@ -3,7 +3,7 @@
 - node: timeline (2 vars, global, local) e ordenacao, 
         carregarDB num login, 
         RepRunnable (recovery), 
-        PullRunnable (central notifications) 
+        PullRunnable (central notifications)            [OK]
 
 
 Central server:

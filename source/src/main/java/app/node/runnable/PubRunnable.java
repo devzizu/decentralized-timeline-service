@@ -7,6 +7,7 @@ import org.zeromq.ZMQ;
 
 import app.central.usernode.NodeNetwork;
 import app.exchange.*;
+import app.util.gui.GUI;
 
 public class PubRunnable implements Runnable {
 
@@ -28,7 +29,7 @@ public class PubRunnable implements Runnable {
 
             while(true) {
                 byte[] postBytes = inProcPull.recv();
-                System.out.println("sent:"+(new String(postBytes)));
+                System.out.println("(publishing) received inproc to pub: " + (new String(postBytes)));
                 pubSocket.send(postBytes);
             }
         }

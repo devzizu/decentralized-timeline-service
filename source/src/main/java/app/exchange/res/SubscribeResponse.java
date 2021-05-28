@@ -11,4 +11,13 @@ public class SubscribeResponse extends MessageWrapper {
     public SubscribeResponse(IpPort connectionForPub) {
         this.connectionForPub = connectionForPub;
     }    
+
+    @Override
+    public String toString() {
+        return "{" +
+            " connectionForPub='" + this.connectionForPub + "',\n" +
+            super.toString() + 
+            "\n}";
+    }
+
 }

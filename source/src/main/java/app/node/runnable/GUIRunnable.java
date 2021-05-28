@@ -30,7 +30,7 @@ public class GUIRunnable implements Runnable {
     private ZContext context;
 
     private static HashSet<String> menuOptions = new HashSet<>(Arrays.asList(
-        "logout", "timeline", "post", "subscribe"
+        "logout", "timeline", "post", "sub"
     ));
     
     public GUIRunnable(ZContext context, String nodeID, CentralAPI centralAPI, NodeNetwork nodeNetwork, NodeDatabase nodeDatabase, SubRunnable subRunnable) {
@@ -90,7 +90,7 @@ public class GUIRunnable implements Runnable {
                         //todo
 
 
-                    } else if (option.startsWith("subscribe ")) {
+                    } else if (option.startsWith("sub ")) {
                         
                         if (optionParts.length == 2) {
 
