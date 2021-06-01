@@ -23,6 +23,7 @@ import app.node.api.GeneralAPI;
 import app.node.persist.NodeDatabase;
 import app.util.data.Serialization;
 import app.util.gui.GUI;
+import io.atomix.utils.net.Address;
 
 public class GUIRunnable implements Runnable {
 
@@ -120,7 +121,7 @@ public class GUIRunnable implements Runnable {
                                 
                                 GUI.showMessageFromNode(nodeID, "requesting clock to node " + optionParts[1]);
 
-                                CompletableFuture<MessageWrapper> futureClockResponse = centralAPI.peer_get_clock(optionParts[1]);
+                                CompletableFuture<MessageWrapper> futureClockResponse = centralAPI.peer_get_clock(optionParts[1],Address.from(subResCast.connectionForReq.ip + ":" + subResCast.connectionForReq.port));
     
                                 MessageWrapper clockResponse = futureClockResponse.get();
                     

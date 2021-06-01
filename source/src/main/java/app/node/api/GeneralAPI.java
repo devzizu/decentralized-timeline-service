@@ -34,7 +34,7 @@ public class GeneralAPI {
         this.config = config;
     }
 
-    public CompletableFuture<MessageWrapper> peer_get_clock(String nodeID) {
+    public CompletableFuture<MessageWrapper> peer_get_clock(String nodeID,Address endereco) {
 
         FutureResponses futureResponses = this.nodeService.getFutureResponses();
 
@@ -46,7 +46,7 @@ public class GeneralAPI {
 
             byte[] requestBytes = Serialization.serialize(clockRequest);
 
-            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.PEER_CLOCK_REQUEST, this.centralAddress);
+            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.PEER_CLOCK_REQUEST, endereco);
 
             CompletableFuture<MessageWrapper> clockResponseFuture = new CompletableFuture<>();
 
