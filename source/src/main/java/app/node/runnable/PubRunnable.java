@@ -29,7 +29,7 @@ public class PubRunnable implements Runnable {
 
             while(true) {
                 byte[] postBytes = inProcPull.recv();
-                System.out.println("(publishing) received inproc to pub: " + (new String(postBytes)));
+               // System.out.println("(publishing) received inproc to pub: " + (new String(postBytes)));
                 pubSocket.send(postBytes);
             }
         }

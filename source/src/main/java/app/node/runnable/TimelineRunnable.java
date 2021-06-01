@@ -112,7 +112,7 @@ public class TimelineRunnable implements Runnable {
             long diff = p.subscriptionClocks.get(nodeClock)-this.nodeDatabase.subscriptionClocks.get(p.nodeID);
 
             if (nodeClock.equals(p.nodeID) && diff > 1) return true;
-            else if (diff>0) return true;
+            else if ((!nodeClock.equals(p.nodeID)) && diff>0) return true;
         }
         
         return false;
@@ -126,7 +126,11 @@ public class TimelineRunnable implements Runnable {
             boolean allBigger = true;
 
             for (String keyA: a.subscriptionClocks.keySet()) {
-                if (b.subscriptionClocks.contains(keyA)) {
+
+                System.out.println("entrei aqui e nao devia.");
+
+                if (b.subscriptionClocks.containsKey(keyA)) {
+
                     allSmaller = allSmaller && (a.subscriptionClocks.get(keyA) <= b.subscriptionClocks.get(keyA));
                     allBigger = allBigger && (a.subscriptionClocks.get(keyA) >= b.subscriptionClocks.get(keyA));
                 }

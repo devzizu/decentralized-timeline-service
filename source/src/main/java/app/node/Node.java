@@ -168,7 +168,7 @@ public class Node {
 
         // create and start services
 
-        NodeService nodeService = new NodeService(config, nodeID, nodeNetwork);
+        NodeService nodeService = new NodeService(config, nodeID, nodeNetwork, nodeDatabase);
         nodeService.start();
 
         GeneralAPI centralAPI = new GeneralAPI(config, nodeService, nodeDatabase, nodeNetwork);

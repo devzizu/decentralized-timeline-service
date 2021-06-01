@@ -7,10 +7,12 @@ import app.central.usernode.NodeNetwork;
 import app.util.config.ConfigReader;
 import app.exchange.ServiceConstants;
 import app.exchange.res.ClockResponse;
+import app.exchange.req.*;
 import app.exchange.res.LoginResponse;
 import app.exchange.res.LogoutResponse;
 import app.exchange.res.RegisterResponse;
 import app.exchange.res.SubscribeResponse;
+import app.node.persist.NodeDatabase;
 import app.util.data.Serialization;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.cluster.messaging.impl.NettyMessagingService;
@@ -24,10 +26,11 @@ public class NodeService {
     private String nodeID;
     private NodeNetwork nodeNetwork;
     private ConfigReader config;
+    private NodeDatabase nodeDatabase;
 
     private static String nodeServiceID;
 
-    public NodeService(ConfigReader config, String nodeID, NodeNetwork nodeNetwork) {
+    public NodeService(ConfigReader config, String nodeID, NodeNetwork nodeNetwork,NodeDatabase nodeDatabase) {
 
         // node information
         this.nodeID = nodeID;
@@ -41,6 +44,7 @@ public class NodeService {
         
         // responses from central futures
         this.centralResponses = new FutureResponses();
+        this.nodeDatabase = nodeDatabase;
     }
 
     public void start() {
@@ -57,6 +61,7 @@ public class NodeService {
         this.register_central_logout_response();
         this.register_subscribe_response();
         this.register_clock_response();
+        this.register_clock_request();
     }
 
     public void register_central_login_response() {
@@ -133,6 +138,29 @@ public class NodeService {
             }
 
         }, this.executorService);
+    }
+
+    public void register_clock_request(){
+        this.messagingService.registerHandler(ServiceConstants.PEER_CLOCK_REQUEST, (address, requestBytes) -> {
+
+            try {
+
+                ClockRequest clockRequest = null;
+
+                clockRequest = (ClockRequest) Serialization.deserialize(requestBytes);
+                
+                ClockResponse response = new ClockResponse(nodeDatabase.subscriptionClocks.get(clockRequest.nodeID),clockRequest.nodeID);
+
+                response.messageID = clockRequest.messageID;
+
+                sendBytesAsync(Serialization.serialize(response),ServiceConstants.PEER_CLOCK_RESPONSE,address);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+
     }
 
     public void register_clock_response() {
