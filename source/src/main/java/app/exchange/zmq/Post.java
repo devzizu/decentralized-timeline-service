@@ -1,18 +1,20 @@
 package app.exchange.zmq;
 
 import java.io.Serializable;
-import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 
 public class Post implements Serializable {
     
-    private String message;
-    private Map<String, Long> subscriptionClocks;
+    public String nodeID;
+    public String message;
+    public ConcurrentHashMap<String, Long> subscriptionClocks;
 
-    public Post(String message, Map<String, Long> subscriptionClocks) {
+    public Post(String nodeID, String message, ConcurrentHashMap<String, Long> subscriptionClocks) {
         this.message = message;
         this.subscriptionClocks = subscriptionClocks;
+        this.nodeID = nodeID;
     }
 
     public String toJSON() {
@@ -27,7 +29,7 @@ public class Post implements Serializable {
 
     @Override
     public String toString() {
-        return "Notification = {" +
+        return "Notification ("+this.nodeID+") = {" +
             " postMessage='" + this.message + "'" +
             ", subscriptionClocks='" + this.subscriptionClocks + "'" +
             "}";

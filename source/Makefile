@@ -19,6 +19,11 @@ NODE 2: run node REGISTER REQUEST
 make run main="app.node.Node" args="--register -node mirs2 -pub 10010 -pull 10011 -reply 10012"
 NODE 3: run node REGISTER REQUEST
 make run main="app.node.Node" args="--register -node mirs3 -pub 10020 -pull 10021 -reply 10022"
+NODE 4: run node REGISTER REQUEST
+make run main="app.node.Node" args="--register -node mirs4 -pub 10030 -pull 10031 -reply 10032"
+NODE 5: run node REGISTER REQUEST
+make run main="app.node.Node" args="--register -node mirs5 -pub 10040 -pull 10041 -reply 10042"
+
 
 NODE 1: run node LOGIN REQUEST
 make run main="app.node.Node" args="--login -node mirs1 -pub 10000 -pull 10001 -reply 10002"

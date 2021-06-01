@@ -3,8 +3,10 @@ package app.node.runnable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -45,10 +47,12 @@ public class GUIRunnable implements Runnable {
     @Override
     public void run() {
 
-        try (ZMQ.Socket inProcPushToPub = context.createSocket(SocketType.PUSH))
+        try (ZMQ.Socket inProcPushToPub = context.createSocket(SocketType.PUSH);
+             ZMQ.Socket inProcPushToTimeline = context.createSocket(SocketType.PUSH))
         {
 
             inProcPushToPub.connect("inproc://"+ServiceConstants.INPROC_PUB);
+            inProcPushToTimeline.connect("inproc://"+ServiceConstants.INPROC_TIMELINE);
 
             boolean continueDisplaying = true;
             Scanner sysin = new Scanner(System.in);
@@ -113,13 +117,16 @@ public class GUIRunnable implements Runnable {
                         }
 
                     } else if (option.startsWith("post ")) {
+                        
+                        this.nodeDatabase.incrementMine();
 
-                        Post newPost = new Post(String.join(" ", Arrays.copyOfRange(optionParts, 1, optionParts.length)), this.nodeDatabase.subscriptionClocks);
+                        Post newPost = new Post(this.nodeID, String.join(" ", Arrays.copyOfRange(optionParts, 1, optionParts.length)), this.nodeDatabase.subscriptionClocks);
 
                         String messageToPost = this.nodeID + "#" + newPost.toJSON();
 
                         System.out.println("in gui:"+messageToPost);
 
+                        inProcPushToTimeline.send(messageToPost);
                         inProcPushToPub.send(messageToPost);
                     }
 

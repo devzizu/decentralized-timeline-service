@@ -191,7 +191,7 @@ public class Node {
             try (ZContext ctx = new ZContext()) {
 
                 // run timeline thread for presenting ordered messages
-                new Thread(new TimelineRunnable(ctx, nodeID)).start();
+                new Thread(new TimelineRunnable(nodeDatabase, ctx, nodeID)).start();
 
                 // checks for posts inproc and publishes data
                 new Thread(new PubRunnable(ctx, nodeNetwork)).start();
