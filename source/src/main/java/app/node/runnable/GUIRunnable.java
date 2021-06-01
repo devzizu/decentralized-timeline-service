@@ -6,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -15,33 +14,38 @@ import org.zeromq.ZMQ;
 import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.ServiceConstants;
+import app.exchange.req.ClockRequest;
+import app.exchange.res.ClockResponse;
 import app.exchange.res.LogoutResponse;
 import app.exchange.res.SubscribeResponse;
 import app.exchange.zmq.Post;
-import app.node.api.CentralAPI;
+import app.node.api.GeneralAPI;
 import app.node.persist.NodeDatabase;
+import app.util.data.Serialization;
 import app.util.gui.GUI;
 
 public class GUIRunnable implements Runnable {
 
     private String nodeID;
-    private CentralAPI centralAPI;
+    private GeneralAPI centralAPI;
     private NodeNetwork nodeNetwork;
     private NodeDatabase nodeDatabase;
     private SubRunnable subRunnable;
     private ZContext context;
+    private TimelineRunnable timelineRunnable;
 
     private static HashSet<String> menuOptions = new HashSet<>(Arrays.asList(
         "logout", "timeline", "post", "sub"
     ));
     
-    public GUIRunnable(ZContext context, String nodeID, CentralAPI centralAPI, NodeNetwork nodeNetwork, NodeDatabase nodeDatabase, SubRunnable subRunnable) {
+    public GUIRunnable(TimelineRunnable timelineRunnable, ZContext context, String nodeID, GeneralAPI centralAPI, NodeNetwork nodeNetwork, NodeDatabase nodeDatabase, SubRunnable subRunnable) {
         this.nodeID = nodeID;
         this.centralAPI = centralAPI;
         this.nodeNetwork = nodeNetwork;
         this.nodeDatabase = nodeDatabase;
         this.subRunnable = subRunnable;
         this.context = context;
+        this.timelineRunnable = timelineRunnable;
     }
 
     @Override
@@ -91,7 +95,12 @@ public class GUIRunnable implements Runnable {
 
                     } else if (option.equals("timeline")) {
                         
-                        //todo
+                        GUI.showMessageFromNode(nodeID, "timeline:");
+                        
+                        for (Post p: this.timelineRunnable.getOrderedTimeline()) {
+
+                            GUI.showMessageFromNode("item: ", p.toString());
+                        }
 
 
                     } else if (option.startsWith("sub ")) {
@@ -108,6 +117,21 @@ public class GUIRunnable implements Runnable {
                             if (subResponse instanceof SubscribeResponse && subResponse.statusCode == true) {
 
                                 SubscribeResponse subResCast = (SubscribeResponse) subResponse;
+                                
+                                GUI.showMessageFromNode(nodeID, "requesting clock to node " + optionParts[1]);
+
+                                CompletableFuture<MessageWrapper> futureClockResponse = centralAPI.peer_get_clock(optionParts[1]);
+    
+                                MessageWrapper clockResponse = futureClockResponse.get();
+                    
+                                GUI.showMessageFromNode(nodeID, "warn: got response from login:");
+                                GUI.showMessageFromNode(nodeID, clockResponse.toString());
+                                                
+                                ClockResponse clockRes = (ClockResponse) clockResponse;
+
+                                GUI.showMessageFromNode(nodeID, clockRes.toString());
+
+                                this.nodeDatabase.setClock(optionParts[1], clockRes.clockValue);
 
                                 this.subRunnable.subscribe(optionParts[1], subResCast.connectionForPub);
                             }

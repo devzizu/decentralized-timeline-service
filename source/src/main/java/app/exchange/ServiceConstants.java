@@ -9,6 +9,12 @@ public class ServiceConstants {
     public static final String NODE_LOGOUT_REQUEST = "node_logout_request";
     public static final String NODE_SUBSCRIBE_REQUEST = "node_subscribe_request";        
 
+    // peer request handler names
+    public static final String PEER_CLOCK_REQUEST = "peer_clock_request";        
+
+    // peer request handler names
+    public static final String PEER_CLOCK_RESPONSE = "peer_clock_response";        
+
     // central response handler names
     public static final String CENTRAL_LOGIN_RESPONSE = "central_login_response";
     public static final String CENTRAL_REGISTER_RESPONSE = "central_register_response";        

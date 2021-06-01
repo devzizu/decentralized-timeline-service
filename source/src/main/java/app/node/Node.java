@@ -13,7 +13,7 @@ import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.res.LoginResponse;
 import app.exchange.res.RegisterResponse;
-import app.node.api.CentralAPI;
+import app.node.api.GeneralAPI;
 import app.node.persist.NodeDatabase;
 import app.node.runnable.CentralNotificationRunnable;
 import app.node.runnable.GUIRunnable;
@@ -69,7 +69,7 @@ public class Node {
         return ns;
     }
 
-    public static LoginResponse process_signup(CentralAPI centralAPI, String nodeID, Namespace progArgs) {
+    public static LoginResponse process_signup(GeneralAPI centralAPI, String nodeID, Namespace progArgs) {
 
         try {
 
@@ -164,13 +164,14 @@ public class Node {
 
         NodeDatabase nodeDatabase = new NodeDatabase();
         nodeDatabase.setNodeID(nodeID);
+        nodeDatabase.setClock(nodeID, (long) 0);
 
         // create and start services
 
         NodeService nodeService = new NodeService(config, nodeID, nodeNetwork);
         nodeService.start();
 
-        CentralAPI centralAPI = new CentralAPI(config, nodeService, nodeDatabase, nodeNetwork);
+        GeneralAPI centralAPI = new GeneralAPI(config, nodeService, nodeDatabase, nodeNetwork);
 
         // process sign-in/sign-up
 
@@ -190,8 +191,10 @@ public class Node {
 
             try (ZContext ctx = new ZContext()) {
 
+                TimelineRunnable timelineRunnable = new TimelineRunnable(nodeDatabase, ctx, nodeID);
+
                 // run timeline thread for presenting ordered messages
-                new Thread(new TimelineRunnable(nodeDatabase, ctx, nodeID)).start();
+                new Thread(timelineRunnable).start();
 
                 // checks for posts inproc and publishes data
                 new Thread(new PubRunnable(ctx, nodeNetwork)).start();
@@ -204,7 +207,7 @@ public class Node {
                 new Thread(new CentralNotificationRunnable(ctx, nodeID, nodeNetwork, subRunnable)).start();
 
                 // checks for user input
-                (new GUIRunnable(ctx, nodeID, centralAPI, nodeNetwork, nodeDatabase, subRunnable)).run();
+                (new GUIRunnable(timelineRunnable, ctx, nodeID, centralAPI, nodeNetwork, nodeDatabase, subRunnable)).run();
             }
         }
     }

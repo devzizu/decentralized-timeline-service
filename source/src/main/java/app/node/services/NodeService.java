@@ -6,6 +6,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import app.central.usernode.NodeNetwork;
 import app.util.config.ConfigReader;
 import app.exchange.ServiceConstants;
+import app.exchange.res.ClockResponse;
 import app.exchange.res.LoginResponse;
 import app.exchange.res.LogoutResponse;
 import app.exchange.res.RegisterResponse;
@@ -55,6 +56,7 @@ public class NodeService {
         this.register_central_register_response();
         this.register_central_logout_response();
         this.register_subscribe_response();
+        this.register_clock_response();
     }
 
     public void register_central_login_response() {
@@ -125,6 +127,25 @@ public class NodeService {
                 subResponse = (SubscribeResponse) Serialization.deserialize(requestBytes);
                 
                 this.centralResponses.complete(subResponse);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_clock_response() {
+
+        this.messagingService.registerHandler(ServiceConstants.PEER_CLOCK_RESPONSE, (address, requestBytes) -> {
+
+            try {
+
+                ClockResponse clockResponse = null;
+
+                clockResponse = (ClockResponse) Serialization.deserialize(requestBytes);
+                
+                this.centralResponses.complete(clockResponse);
 
             } catch (Exception e) {
                 e.printStackTrace();

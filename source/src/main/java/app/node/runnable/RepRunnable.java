@@ -9,6 +9,7 @@ import org.zeromq.ZMQ;
 import app.central.usernode.NodeNetwork;
 import app.exchange.*;
 import app.exchange.req.*;
+import app.exchange.res.ClockResponse;
 import app.node.persist.NodeDatabase;
 import app.util.data.Serialization;
 
@@ -26,13 +27,10 @@ public class RepRunnable implements Runnable {
         this.nodeDatabase = nodeDatabase;
     }
 
-
-    
-
     @Override
     public void run(){
 
-        try(ZMQ.Socket repSocket = context.createSocket(SocketType.REP)){
+        try(ZMQ.Socket repSocket = context.createSocket(SocketType.REP)) {
 
             repSocket.bind("tcp://"+nodeNetwork.host+":"+nodeNetwork.replyPort);
 
@@ -41,24 +39,26 @@ public class RepRunnable implements Runnable {
 
                 MessageWrapper message = (MessageWrapper) Serialization.deserialize(msg);
 
-                if (message instanceof ClockRequest){
+                if (message instanceof ClockRequest) {
+                    
                     ClockRequest rMessage = (ClockRequest) message;
-
-                    message = new ClockResponse(nodeDatabase.subscriptionClocks.get(rMessage.nodeID),rMessage.nodeID);
+                    ClockResponse responseClock = new ClockResponse(nodeDatabase.subscriptionClocks.get(rMessage.nodeID),rMessage.nodeID);
+                    responseClock.setStatusCode(true);
+                    responseClock.setStatusMessage("here comes the clock that you requested boiiiii!");
+                    msg = Serialization.serialize(responseClock);
+                    repSocket.send(msg);
                 }
-
+/*
                 if (message instanceof RecoverRequest){
                     RecoverRequest rMessage = (RecoverRequest) message;
 
                     //Todo Logica do recover
                 }
-
-                msg = Serialization.serialize(message);
-
-                repSocket.send(msg);
-
+*/
             }
 
+            } catch (Exception e) {
+                e.printStackTrace();
             }
     }
 }

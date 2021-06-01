@@ -16,8 +16,6 @@ public class NodeDatabase {
     public NodeDatabase() {
 
         this.subscriptionClocks = new ConcurrentHashMap<>();
-        
-        this.subscriptionClocks.put(node_id, (long)0);
     }
 
     public void incrementMine() {
@@ -31,5 +29,9 @@ public class NodeDatabase {
     public void loadDatabase(String databaseFile) {
 
         // todo
+    }
+
+    public void setClock(String nodeId, long value){
+        subscriptionClocks.put(nodeId,value);
     }
 }

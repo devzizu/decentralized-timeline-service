@@ -110,7 +110,7 @@ public class CentralUtils {
 
         if(userSubscriber==null || userSubscription==null || !(userSubscriber.online)){
             
-            SubscribeResponse subRes = new SubscribeResponse(null);
+            SubscribeResponse subRes = new SubscribeResponse(null,null);
 
             subRes.setStatusCode(false);
             subRes.setStatusMessage("oops something went wrong! mirs on the way!");
@@ -121,7 +121,7 @@ public class CentralUtils {
 
             if (userSubscriber.subscriptions.contains(subscription)) {
                 
-                SubscribeResponse subRes = new SubscribeResponse(null);
+                SubscribeResponse subRes = new SubscribeResponse(null,null);
 
                 subRes.setStatusCode(false);
                 subRes.setStatusMessage("already subscribed");
@@ -156,7 +156,7 @@ public class CentralUtils {
                 if (!electedUser.username.equals(userSubscription.username))
                     redisConnector.setNode(electedUser.username, electedUser);
                 
-                SubscribeResponse subRes = new SubscribeResponse(new IpPort(electedUser.network.host,electedUser.network.pubPort));
+                SubscribeResponse subRes = new SubscribeResponse(new IpPort(electedUser.network.host,electedUser.network.pubPort),new IpPort(electedUser.network.host,electedUser.network.replyPort));
                 subRes.setStatusCode(true);
                 subRes.setStatusMessage("sub ok");
 

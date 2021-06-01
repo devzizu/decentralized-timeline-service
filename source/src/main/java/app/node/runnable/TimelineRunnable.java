@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -38,6 +39,10 @@ public class TimelineRunnable implements Runnable {
         this.otherNodeMessages = new HashMap<>();
         this.nodeDatabase = nodeDatabase;
         this.futureNodeMessages = new ArrayList<>();
+    }
+
+    public List<Post> getOrderedTimeline() {
+        return this.myOrderedTimeline.stream().collect(Collectors.toList());
     }
 
     @Override

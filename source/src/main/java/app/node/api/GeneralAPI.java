@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.ServiceConstants;
+import app.exchange.req.ClockRequest;
 import app.exchange.req.LoginRequest;
 import app.exchange.req.LogoutRequest;
 import app.exchange.req.RegisterRequest;
@@ -16,7 +17,7 @@ import app.util.config.ConfigReader;
 import app.util.data.Serialization;
 import io.atomix.utils.net.Address;
 
-public class CentralAPI {
+public class GeneralAPI {
     
     private NodeService nodeService;
     private NodeDatabase nodeDatabase;
@@ -24,13 +25,40 @@ public class CentralAPI {
     private Address centralAddress;
     private ConfigReader config;
 
-    public CentralAPI(ConfigReader config, NodeService service, NodeDatabase nodeDatabase, NodeNetwork nodeNetwork) {
+    public GeneralAPI(ConfigReader config, NodeService service, NodeDatabase nodeDatabase, NodeNetwork nodeNetwork) {
 
         this.nodeService = service;
         this.nodeDatabase = nodeDatabase;
         this.nodeNetwork = nodeNetwork;
         this.centralAddress = Address.from(config.getString("central", "main_address_host") + ":" + config.getLong("central", "main_address_atomix_port"));
         this.config = config;
+    }
+
+    public CompletableFuture<MessageWrapper> peer_get_clock(String nodeID) {
+
+        FutureResponses futureResponses = this.nodeService.getFutureResponses();
+
+        try {
+
+            ClockRequest clockRequest = new ClockRequest(nodeID);
+            
+            clockRequest.messageID = futureResponses.getId();
+
+            byte[] requestBytes = Serialization.serialize(clockRequest);
+
+            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.PEER_CLOCK_REQUEST, this.centralAddress);
+
+            CompletableFuture<MessageWrapper> clockResponseFuture = new CompletableFuture<>();
+
+            futureResponses.addPending(clockResponseFuture);
+
+            return clockResponseFuture;
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public CompletableFuture<MessageWrapper> central_login() {
