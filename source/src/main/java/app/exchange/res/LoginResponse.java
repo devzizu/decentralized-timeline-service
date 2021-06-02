@@ -26,7 +26,7 @@ public class LoginResponse extends MessageWrapper {
 
     @Override
     public String toString() {
-        return "{" +
+        return "LoginResponse = {" +
             " connections='" + this.connections + "'" +
             ", recoveryPorts='" + this.recoveryPorts + "',\n" +
             super.toString() + 

@@ -96,11 +96,11 @@ public class GUIRunnable implements Runnable {
 
                     } else if (option.equals("timeline")) {
                         
-                        GUI.showMessageFromNode(nodeID, "timeline:");
+                        GUI.showMessageFromNode(nodeID, "timeline (most recent posts are below)");
                         
                         for (Post p: this.timelineRunnable.getOrderedTimeline()) {
 
-                            GUI.showMessageFromNode("item: ", p.toString());
+                            GUI.showMessageFromNode(p.subscriptionClocks.toString(), p.message);
                         }
 
 
@@ -125,7 +125,6 @@ public class GUIRunnable implements Runnable {
     
                                 MessageWrapper clockResponse = futureClockResponse.get();
                     
-                                GUI.showMessageFromNode(nodeID, "warn: got response from login:");
                                 GUI.showMessageFromNode(nodeID, clockResponse.toString());
                                                 
                                 ClockResponse clockRes = (ClockResponse) clockResponse;

@@ -16,7 +16,7 @@ public class SubscribeResponse extends MessageWrapper {
 
     @Override
     public String toString() {
-        return "{" +
+        return "SubscribeResponse {" +
             " connectionForPub='" + this.connectionForPub + "',\n" +
             " connectionForReq='" + this.connectionForReq + "',\n" +
             super.toString() + 

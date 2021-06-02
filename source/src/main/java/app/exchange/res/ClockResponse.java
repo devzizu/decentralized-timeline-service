@@ -15,8 +15,8 @@ public class ClockResponse extends MessageWrapper {
 
     @Override
     public String toString() {
-        return "{" +
-            " clockValue='" + this.clockValue + "'" +
+        return "ClockResponse = {" +
+            " clock_value='" + this.clockValue + "'" +
             ", nodeID='" + this.nodeID + "'\n" +
             super.toString() +
             "}";

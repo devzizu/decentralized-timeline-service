@@ -22,10 +22,6 @@ public class TimelineRunnable implements Runnable {
 
     private ZContext context;
     private String myNodeID;
-
-    private List<Post> myTimelineList;
-    private Set<Post> myOrderedTimeline;
-    private Map<String, Post> otherNodeMessages;
     private List<Post> futureNodeMessages;
 
     private NodeDatabase nodeDatabase;
@@ -34,15 +30,12 @@ public class TimelineRunnable implements Runnable {
 
         this.myNodeID = nodeID;
         this.context = context;
-        this.myTimelineList = new ArrayList<>();
-        this.myOrderedTimeline = new TreeSet<Post>(new PostClockComparator());
-        this.otherNodeMessages = new HashMap<>();
         this.nodeDatabase = nodeDatabase;
         this.futureNodeMessages = new ArrayList<>();
     }
 
     public List<Post> getOrderedTimeline() {
-        return this.myOrderedTimeline.stream().collect(Collectors.toList());
+        return this.nodeDatabase.myOrderedTimeline.stream().collect(Collectors.toList());
     }
 
     @Override
@@ -71,7 +64,7 @@ public class TimelineRunnable implements Runnable {
 
                     this.futureNodeMessages.add(postMessage);
                     
-                    GUI.showMessageFromNode(this.myNodeID, "got new post from FUTURE");
+                    GUI.showMessageFromNode(this.myNodeID, "got new post from future");
                 }
             }
         }
@@ -82,19 +75,34 @@ public class TimelineRunnable implements Runnable {
         for(String nodeClock: this.nodeDatabase.subscriptionClocks.keySet()) {
             long old = this.nodeDatabase.subscriptionClocks.get(nodeClock);
             if (!nodeClock.equals(this.myNodeID))
-                this.nodeDatabase.subscriptionClocks.put(nodeClock, Math.max(old, postMessage.subscriptionClocks.get(nodeClock)));
+                if (postMessage.subscriptionClocks.containsKey(nodeClock))
+                    this.nodeDatabase.subscriptionClocks.put(nodeClock, Math.max(old, postMessage.subscriptionClocks.get(nodeClock)));
         }
+
+        Post toRemove = null;
 
         if (postMessage.nodeID.equals(this.myNodeID)) {
 
-            this.myTimelineList.add(postMessage);
+            this.nodeDatabase.myTimelineList.add(postMessage);
     
         } else {
 
-            this.otherNodeMessages.put(postMessage.nodeID, postMessage);
+            if (!this.nodeDatabase.otherNodeMessages.containsKey(postMessage.nodeID)) {
+                
+                this.nodeDatabase.otherNodeMessages.put(postMessage.nodeID, new TreeSet<Post>());
+            }
+
+            TreeSet<Post> otherPosts = this.nodeDatabase.otherNodeMessages.get(postMessage.nodeID);
+
+            if (otherPosts.size() == 2) toRemove = otherPosts.pollFirst();
+
+            otherPosts.add(postMessage);   
         }
 
-        this.myOrderedTimeline.add(postMessage);
+        if (toRemove != null)
+            this.nodeDatabase.myOrderedTimeline.remove(toRemove);
+
+        this.nodeDatabase.myOrderedTimeline.add(postMessage);
     }
 
     public void processFutureMessages() {
@@ -109,38 +117,12 @@ public class TimelineRunnable implements Runnable {
 
         for (String nodeClock: p.subscriptionClocks.keySet()) {
 
-            long diff = p.subscriptionClocks.get(nodeClock)-this.nodeDatabase.subscriptionClocks.get(p.nodeID);
+            long diff = p.subscriptionClocks.get(nodeClock) - this.nodeDatabase.subscriptionClocks.get(nodeClock);
 
-            if (nodeClock.equals(p.nodeID) && diff > 1) return true;
+            if (nodeClock.equals(p.nodeID) && Math.abs(diff) > 1) return true;
             else if ((!nodeClock.equals(p.nodeID)) && diff>0) return true;
         }
         
         return false;
     }
-
-    static class PostClockComparator implements Comparator<Post> {
-        
-        public int compare(Post a, Post b) {
-
-            boolean allSmaller = true;
-            boolean allBigger = true;
-
-            for (String keyA: a.subscriptionClocks.keySet()) {
-
-                System.out.println("entrei aqui e nao devia.");
-
-                if (b.subscriptionClocks.containsKey(keyA)) {
-
-                    allSmaller = allSmaller && (a.subscriptionClocks.get(keyA) <= b.subscriptionClocks.get(keyA));
-                    allBigger = allBigger && (a.subscriptionClocks.get(keyA) >= b.subscriptionClocks.get(keyA));
-                }
-            }
-
-            if (allBigger == allSmaller) {
-                return a.nodeID.compareTo(b.nodeID);
-            }
-
-            return allSmaller ? -1 : (allBigger? 1 : 0);
-        }
-    } 
 }

@@ -8,6 +8,7 @@ import app.exchange.ServiceConstants;
 import app.exchange.req.ClockRequest;
 import app.exchange.req.LoginRequest;
 import app.exchange.req.LogoutRequest;
+import app.exchange.req.RecoverRequest;
 import app.exchange.req.RegisterRequest;
 import app.exchange.req.SubscribeRequest;
 import app.node.persist.NodeDatabase;
@@ -32,6 +33,33 @@ public class GeneralAPI {
         this.nodeNetwork = nodeNetwork;
         this.centralAddress = Address.from(config.getString("central", "main_address_host") + ":" + config.getLong("central", "main_address_atomix_port"));
         this.config = config;
+    }
+
+    public CompletableFuture<MessageWrapper> peer_recover_node(String nodeID, long lastClock, Address peerAddress) {
+
+        FutureResponses futureResponses = this.nodeService.getFutureResponses();
+
+        try {
+
+            RecoverRequest recoverRequest = new RecoverRequest(nodeID, lastClock);
+            
+            recoverRequest.messageID = futureResponses.getId();
+
+            byte[] requestBytes = Serialization.serialize(recoverRequest);
+
+            this.nodeService.sendBytesAsync(requestBytes, ServiceConstants.PEER_RECOVER_REQUEST, peerAddress);
+
+            CompletableFuture<MessageWrapper> recoverResponseFuture = new CompletableFuture<>();
+
+            futureResponses.addPending(recoverResponseFuture);
+
+            return recoverResponseFuture;
+
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 
     public CompletableFuture<MessageWrapper> peer_get_clock(String nodeID,Address endereco) {

@@ -2,18 +2,18 @@ package app.node.services;
 
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.stream.Collectors;
+import java.util.*;
 
 import app.central.usernode.NodeNetwork;
 import app.util.config.ConfigReader;
 import app.exchange.ServiceConstants;
-import app.exchange.res.ClockResponse;
 import app.exchange.req.*;
-import app.exchange.res.LoginResponse;
-import app.exchange.res.LogoutResponse;
-import app.exchange.res.RegisterResponse;
-import app.exchange.res.SubscribeResponse;
+import app.exchange.res.*;
+import app.exchange.zmq.*;
 import app.node.persist.NodeDatabase;
 import app.util.data.Serialization;
+import app.util.gui.GUI;
 import io.atomix.cluster.messaging.MessagingConfig;
 import io.atomix.cluster.messaging.impl.NettyMessagingService;
 import io.atomix.utils.net.Address;
@@ -59,9 +59,66 @@ public class NodeService {
         this.register_central_login_response();
         this.register_central_register_response();
         this.register_central_logout_response();
-        this.register_subscribe_response();
-        this.register_clock_response();
-        this.register_clock_request();
+        this.register_central_subscribe_response();
+        this.register_peer_clock_response();
+        this.register_peer_clock_request();
+        this.register_peer_recover_request();
+        this.register_peer_recover_response();
+    }
+
+    public void register_peer_recover_response() {
+
+        this.messagingService.registerHandler(ServiceConstants.PEER_RECOVER_RESPONSE, (address, requestBytes) -> {
+
+            try {
+
+                RecoverResponse recoverResponse = null;
+
+                recoverResponse = (RecoverResponse) Serialization.deserialize(requestBytes);
+                
+                this.centralResponses.complete(recoverResponse);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
+    }
+
+    public void register_peer_recover_request() {
+
+        this.messagingService.registerHandler(ServiceConstants.PEER_RECOVER_REQUEST, (address, requestBytes) -> {
+
+            try {
+
+                GUI.showMessageFromNode(nodeID, "GOT RECOVER REQ 1");
+
+                RecoverRequest recoverRequest = null;
+
+                recoverRequest = (RecoverRequest) Serialization.deserialize(requestBytes);
+
+                final long clockVal = recoverRequest.clock;
+
+                GUI.showMessageFromNode(nodeID, "GOT RECOVER REQ 2");
+
+                TreeSet<Post> posts = null;
+
+                if (recoverRequest.nodeID.equals(this.nodeID))
+                    posts = nodeDatabase.myTimelineList.stream().collect(Collectors.toCollection(() -> new TreeSet<Post>()));
+                else
+                    posts = nodeDatabase.otherNodeMessages.get(recoverRequest.nodeID);
+
+                RecoverResponse response = new RecoverResponse(recoverRequest.nodeID,posts.stream().filter(p -> p.subscriptionClocks.get(p.nodeID) > clockVal).collect(Collectors.toCollection(() -> new TreeSet<Post>())));
+
+                response.messageID = recoverRequest.messageID;
+
+                sendBytesAsync(Serialization.serialize(response),ServiceConstants.PEER_RECOVER_RESPONSE,address);
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }, this.executorService);
     }
 
     public void register_central_login_response() {
@@ -121,7 +178,7 @@ public class NodeService {
         }, this.executorService);
     }
 
-    public void register_subscribe_response() {
+    public void register_central_subscribe_response() {
 
         this.messagingService.registerHandler(ServiceConstants.CENTRAL_SUBSCRIBE_RESPONSE, (address, requestBytes) -> {
 
@@ -140,7 +197,7 @@ public class NodeService {
         }, this.executorService);
     }
 
-    public void register_clock_request(){
+    public void register_peer_clock_request(){
         this.messagingService.registerHandler(ServiceConstants.PEER_CLOCK_REQUEST, (address, requestBytes) -> {
 
             try {
@@ -163,7 +220,7 @@ public class NodeService {
 
     }
 
-    public void register_clock_response() {
+    public void register_peer_clock_response() {
 
         this.messagingService.registerHandler(ServiceConstants.PEER_CLOCK_RESPONSE, (address, requestBytes) -> {
 

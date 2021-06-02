@@ -15,7 +15,7 @@ public class LogoutResponse extends MessageWrapper {
 
     @Override
     public String toString() {
-        return "{" +
+        return "LogoutResponse = {" +
             " nodeId='" + this.nodeId + "'" + "',\n" +
             super.toString() + 
             "}";

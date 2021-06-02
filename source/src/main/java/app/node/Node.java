@@ -4,6 +4,7 @@ package app.node;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 
 import org.zeromq.ZContext;
@@ -12,7 +13,9 @@ import app.central.usernode.IpPort;
 import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.res.LoginResponse;
+import app.exchange.res.RecoverResponse;
 import app.exchange.res.RegisterResponse;
+import app.exchange.zmq.Post;
 import app.node.api.GeneralAPI;
 import app.node.persist.NodeDatabase;
 import app.node.runnable.CentralNotificationRunnable;
@@ -23,6 +26,7 @@ import app.node.runnable.TimelineRunnable;
 import app.node.services.NodeService;
 import app.util.config.ConfigReader;
 import app.util.gui.GUI;
+import io.atomix.utils.net.Address;
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -113,7 +117,7 @@ public class Node {
                 if (loginResponse instanceof LoginResponse && loginResponse.statusCode == true) {
                     
                     LoginResponse logRes = (LoginResponse) loginResponse;
-
+                    
                     processedSignUp = true;
 
                     return logRes;
@@ -187,6 +191,52 @@ public class Node {
             if (progArgs.getBoolean("login")) {
                 connectionsMap = loginResponse.connections;
                 recoveryMap = loginResponse.recoveryPorts;
+
+                GUI.showMessageFromNode(nodeID, "info: timeline recover process started...");
+
+                // process timeline recover
+    
+                for (String subscription: recoveryMap.keySet()) {
+
+                    nodeDatabase.setClock(subscription, -999);
+
+                    GUI.showMessageFromNode(nodeID, "recovering timeline for node " + subscription + " from " + recoveryMap.get(subscription));
+
+                    // get last clock stored
+                    // long lastClock = nodeDatabase.subscriptionClocks.get(subscription);
+                    long lastClock = 0;
+
+                    MessageWrapper recoverResponse = centralAPI.peer_recover_node(subscription, lastClock, Address.from(recoveryMap.get(subscription).ip + ":" + recoveryMap.get(subscription).port)).get();
+
+                    GUI.showMessageFromNode(nodeID, recoverResponse.toString());
+
+                    if (recoverResponse instanceof RecoverResponse) {
+
+                        RecoverResponse recoverRes = (RecoverResponse) recoverResponse;
+
+                        // TODO: consider messages from future?
+
+                        recoverRes.posts.forEach(p -> nodeDatabase.myOrderedTimeline.add(p));
+
+                        TreeSet<Post> otherTreeSet = new TreeSet<>();
+                        for(Post p: recoverRes.posts)
+                            otherTreeSet.add(p);
+                        nodeDatabase.otherNodeMessages.put(subscription, otherTreeSet);
+
+                        Post lastPost = recoverRes.posts.pollLast();
+
+                        for(String nodeClock: nodeDatabase.subscriptionClocks.keySet()) {
+                            long old = nodeDatabase.subscriptionClocks.get(nodeClock);
+                            if (nodeClock.equals(lastPost.nodeID))
+                                if (lastPost.subscriptionClocks.containsKey(nodeClock))    
+                                    nodeDatabase.subscriptionClocks.put(nodeClock, Math.max(lastPost.subscriptionClocks.get(nodeClock), old));
+                        }
+
+                        GUI.showMessageFromNode(nodeID, "Recover clock result = " + nodeDatabase.subscriptionClocks.toString());
+                    }
+                }
+    
+                GUI.showMessageFromNode(nodeID, "info: timeline recover process finished...");
             }
 
             try (ZContext ctx = new ZContext()) {
