@@ -1,6 +1,7 @@
 package app.exchange.zmq;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
@@ -37,6 +38,7 @@ public class Post implements Serializable,Comparable<Post> {
 
     @Override
     public int compareTo(Post p){
+        System.out.println("COMPARETO");
         if(this.nodeID.equals(p.nodeID)){
             return Long.compare(this.subscriptionClocks.get(this.nodeID),p.subscriptionClocks.get(p.nodeID));
         }
@@ -45,6 +47,7 @@ public class Post implements Serializable,Comparable<Post> {
 
     @Override
     public boolean equals(Object o){
+        System.out.println("EQUALS");
         if(o instanceof Post){
             Post p = (Post) o;
             if( p.nodeID.equals(this.nodeID) && p.subscriptionClocks.get(p.nodeID) == this.subscriptionClocks.get(this.nodeID)) 

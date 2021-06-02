@@ -51,8 +51,6 @@ public class CentralUtils {
         
         UserNode user = redisConnector.getNode(loginRequest.nodeID);
         
-        System.out.println(user);
-
         if(user==null || user.online) {
             LoginResponse res = new LoginResponse();
             res.setStatusCode(false);
@@ -200,8 +198,6 @@ public class CentralUtils {
 
                 if(nc!=null){
 
-                    System.out.println("nao sou null!!");
-
                     dependent.dependsOn.remove(username);
 
                     if(dependent.dependsOn.containsKey(nc.username))
@@ -213,8 +209,6 @@ public class CentralUtils {
 
                     IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
 
-                    System.out.println(dependent.network.toString());
-        
                     NotifyNode.notify(dependent.network.host, dependent.network.pullPort, c.origin_node, newPorts);
         
                     if (nc.connections.containsKey(c.origin_node))

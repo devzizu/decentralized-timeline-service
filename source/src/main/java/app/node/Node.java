@@ -167,8 +167,19 @@ public class Node {
         String nodeID = progArgs.getString("node");
 
         NodeDatabase nodeDatabase = new NodeDatabase();
-        nodeDatabase.setNodeID(nodeID);
-        nodeDatabase.setClock(nodeID, (long) 0);
+
+        if(progArgs.getBoolean("login")) {
+
+            GUI.showMessageFromNode(nodeID, "loading old database...");
+            nodeDatabase = nodeDatabase.loadDatabase("../nodes/"+nodeID+".db");
+        }
+
+        if (!nodeDatabase.loaded) {
+            GUI.showMessageFromNode(nodeID, "database not loaded...");
+            nodeDatabase = new NodeDatabase();
+            nodeDatabase.setNodeID(nodeID);
+            nodeDatabase.setClock(nodeID, (long) 0);
+        }
 
         // create and start services
 
@@ -198,13 +209,12 @@ public class Node {
     
                 for (String subscription: recoveryMap.keySet()) {
 
-                    nodeDatabase.setClock(subscription, -999);
+                    //nodeDatabase.setClock(subscription, -999);
 
                     GUI.showMessageFromNode(nodeID, "recovering timeline for node " + subscription + " from " + recoveryMap.get(subscription));
 
                     // get last clock stored
-                    // long lastClock = nodeDatabase.subscriptionClocks.get(subscription);
-                    long lastClock = 0;
+                    long lastClock = nodeDatabase.subscriptionClocks.get(subscription);
 
                     MessageWrapper recoverResponse = centralAPI.peer_recover_node(subscription, lastClock, Address.from(recoveryMap.get(subscription).ip + ":" + recoveryMap.get(subscription).port)).get();
 
@@ -214,13 +224,15 @@ public class Node {
 
                         RecoverResponse recoverRes = (RecoverResponse) recoverResponse;
 
-                        // TODO: consider messages from future?
-
-                        recoverRes.posts.forEach(p -> nodeDatabase.myOrderedTimeline.add(p));
-
+                        for (Post p: recoverRes.posts) {
+                            nodeDatabase.myOrderedTimeline.add(p);
+                        }
+                       
                         TreeSet<Post> otherTreeSet = new TreeSet<>();
-                        for(Post p: recoverRes.posts)
+                        
+                        for(Post p: recoverRes.posts) {
                             otherTreeSet.add(p);
+                        }
                         nodeDatabase.otherNodeMessages.put(subscription, otherTreeSet);
 
                         Post lastPost = recoverRes.posts.pollLast();

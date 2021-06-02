@@ -1,29 +1,44 @@
 
 package app.node.persist;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 import app.node.persist.timeline.TimelineMessage;
 import app.exchange.zmq.*;
 
-public class NodeDatabase {
+public class NodeDatabase implements Serializable {
+    
+    private static final long serialversionUID = 129348938L;
     
     public String node_id;
     public long last_message_id;
     public List<TimelineMessage> timeline;
     public ConcurrentHashMap<String, Long> subscriptionClocks;
     public List<Post> myTimelineList;
-    public Set<Post> myOrderedTimeline;
+    public TreeSet<Post> myOrderedTimeline;
     public Map<String, TreeSet<Post>> otherNodeMessages;
+    public boolean loaded;
 
     public NodeDatabase() {
 
         this.myTimelineList = new ArrayList<>();
         this.myOrderedTimeline = new TreeSet<Post>(new PostClockComparator());
         this.otherNodeMessages = new HashMap<>();
+        this.timeline = new ArrayList<>();
 
         this.subscriptionClocks = new ConcurrentHashMap<>();
+        this.loaded = false;
+    }
+
+    public String getNodeID() {
+        return node_id;
     }
 
     public void incrementMine() {
@@ -31,19 +46,61 @@ public class NodeDatabase {
     }
 
     public void setNodeID(String id) {
-        this.node_id = id;
+        node_id = id;
     }
 
-    public void loadDatabase(String databaseFile) {
+    public void setLoaded() {
+        this.loaded = true;
+    }
 
-        // todo
+    public NodeDatabase loadDatabase(String databaseFile) {
+
+        try {
+
+            FileInputStream fis = new FileInputStream(new File(databaseFile));
+
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            NodeDatabase db = (NodeDatabase) ois.readObject();
+
+            ois.close();
+            fis.close();
+
+            db.setLoaded();
+
+            return db;
+
+        } catch(Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public boolean storeDatabase() {
+
+        try {
+
+            FileOutputStream fos = new FileOutputStream(new File("../nodes/"+node_id+".db"));
+
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+
+            oos.writeObject(this);
+            oos.close();
+            fos.close();
+
+            return true;
+
+        } catch(Exception e) {
+
+            return false;
+        }        
     }
 
     public void setClock(String nodeId, long value){
         subscriptionClocks.put(nodeId,value);
     }
     
-    static class PostClockComparator implements Comparator<Post> {
+    static class PostClockComparator implements Serializable, Comparator<Post> {
         
         public int compare(Post a, Post b) {
 
@@ -65,8 +122,6 @@ public class NodeDatabase {
                 }
             }
 
-            System.out.println("small: " + allSmaller + " bigger: " + allBigger);
-
             if (allBigger == allSmaller) {
                 return b.nodeID.compareTo(a.nodeID);
             }
@@ -74,4 +129,18 @@ public class NodeDatabase {
             return allSmaller ? -1 : (allBigger? 1 : 0);
         }
     } 
+
+    @Override
+    public String toString() {
+        return "{" +
+            " last_message_id='" + last_message_id + "'" +
+            ", timeline='" + timeline + "'" +
+            ", subscriptionClocks='" + subscriptionClocks + "'" +
+            ", myTimelineList='" + myTimelineList + "'" +
+            ", myOrderedTimeline='" + myOrderedTimeline + "'" +
+            ", otherNodeMessages='" + otherNodeMessages + "'" +
+            ", loaded='" + loaded + "'" +
+            "}";
+    }
+    
 }

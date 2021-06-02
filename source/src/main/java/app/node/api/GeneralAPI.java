@@ -95,7 +95,7 @@ public class GeneralAPI {
 
         try {
 
-            LoginRequest loginRequest = new LoginRequest(nodeDatabase.node_id, nodeNetwork);
+            LoginRequest loginRequest = new LoginRequest(nodeDatabase.getNodeID(), nodeNetwork);
             
             loginRequest.messageID = futureResponses.getId();
 
@@ -122,7 +122,7 @@ public class GeneralAPI {
 
         try {
 
-            RegisterRequest registerRequest = new RegisterRequest(nodeDatabase.node_id, nodeNetwork);
+            RegisterRequest registerRequest = new RegisterRequest(nodeDatabase.getNodeID(), nodeNetwork);
             
             registerRequest.messageID = futureResponses.getId();
 
@@ -149,7 +149,7 @@ public class GeneralAPI {
 
         try {
 
-            LogoutRequest logoutRequest = new LogoutRequest(nodeDatabase.node_id);
+            LogoutRequest logoutRequest = new LogoutRequest(nodeDatabase.getNodeID());
             
             logoutRequest.messageID = futureResponses.getId();
 
@@ -176,7 +176,7 @@ public class GeneralAPI {
 
         try {
 
-            SubscribeRequest subRequest = new SubscribeRequest(nodeDatabase.node_id, subNodeID);
+            SubscribeRequest subRequest = new SubscribeRequest(nodeDatabase.getNodeID(), subNodeID);
             
             System.out.println(subRequest.toString());
 

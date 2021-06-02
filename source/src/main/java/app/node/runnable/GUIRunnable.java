@@ -3,7 +3,6 @@ package app.node.runnable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.CompletableFuture;
 
@@ -14,14 +13,12 @@ import org.zeromq.ZMQ;
 import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.ServiceConstants;
-import app.exchange.req.ClockRequest;
 import app.exchange.res.ClockResponse;
 import app.exchange.res.LogoutResponse;
 import app.exchange.res.SubscribeResponse;
 import app.exchange.zmq.Post;
 import app.node.api.GeneralAPI;
 import app.node.persist.NodeDatabase;
-import app.util.data.Serialization;
 import app.util.gui.GUI;
 import io.atomix.utils.net.Address;
 
@@ -91,6 +88,8 @@ public class GUIRunnable implements Runnable {
                             // login ok, start zeromq
                             continueDisplaying = false;
                             
+                            this.nodeDatabase.storeDatabase();
+
                             GUI.showMessageFromNode(nodeID, "warn: exiting node...");
                         }
 
