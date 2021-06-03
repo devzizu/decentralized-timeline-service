@@ -42,7 +42,6 @@ def main():
         plottedData["test"].append(test)
         plottedData["avg"].append(testAvg)
 
-    pprint(plottedData)
     plot_results(plottedData, "size of tree (nr. of nodes)", "avg rounds", "Benchmarks (samples={})".format(NR_SAMPLES), "test", "avg")
 
     #networkx.draw(GRAPH, with_labels=True)
@@ -73,10 +72,7 @@ def broadcast_graph(size, GRAPH):
             currentRound = currentRound + 1                
         
         results.append(currentRound)
-
-    # networkx.draw(GRAPH, with_labels=True)
-    # plt.show()
-
+        
     return results
 
 def create_random_tree(NR_ELEMTS_ATTACH):
