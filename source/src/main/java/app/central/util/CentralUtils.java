@@ -89,6 +89,8 @@ public class CentralUtils {
 
             redisConnector.setNode(loginRequest.nodeID, user);
 
+            buildConnectedTree(user, getOnlineSubscribers(user));
+
             LoginResponse res = new LoginResponse(connecting, recoverPorts);
 
             res.setStatusCode(true);
@@ -293,12 +295,12 @@ public class CentralUtils {
 
         return candidate.getaverageUpTime() / (double)Math.abs(subscriber.network.pubPort-candidate.network.pubPort);
     }
-/*
-    private ConnectedTreeNode<UserNode> buildConnectedTree(UserNode rootNodeUser, List<UserNode> onlineSubscribers) {
 
-        ConnectedTreeNode<UserNode> rootNode = new ConnectedTreeNode<UserNode>(rootNodeUser);
+    private void buildConnectedTree(UserNode rootNodeUser, List<UserNode> onlineSubscribers) {
 
         TreeSet<UserScore> orderedScore = new TreeSet<UserScore>();
+
+        List<UserNode> alreadyConnected = new ArrayList();
 
         for (UserNode subscriber: onlineSubscribers) {
             orderedScore.add(new UserScore(subscriber, points(rootNodeUser, subscriber)));
@@ -307,17 +309,53 @@ public class CentralUtils {
         Iterator<UserScore> descIter = orderedScore.descendingIterator();
 
         int count = 0;
-        while(descIter.hasNext()) {
+        int half = Math.ceil(orderedScore.size()/2);
+        while(descIter.hasNext() && count<=half) {
             
-            //if (Math.ceil(orderedScore.size()/2))
-            
-            //UserScore elem = descIter.next();
+            UserScore elem = descIter.next();
+            treeConnection(elem.userNode, rootNodeUser, rootNodeUser.username);
+            alreadyConnected.add(elem.userNode);
+
             count++;
         }
 
-        return null;
+        Random random = new Random(19700621);
+
+
+        while(descIter.hasNext()){
+
+            UserScore elem = descIter.next();
+            UserNode elected = alreadyConnected.get(random.nextInt(alreadyConnected.size()));
+            treeConnection(elem.userNode, elected, rootNodeUser.username);
+            alreadyConnected.add(elem.userNode);
+        }
     }
-*/
+
+
+
+    private void treeConnection (UserNode conecting, UserNode source, String subscription){
+        if(conecting.dependsOn.containsKey(source.username))
+            conecting.dependsOn.get(source.username).add(subscription);
+        
+        else
+            conecting.dependsOn.put(source.username, (new HashSet<>(Arrays.asList(subscription))));
+            
+        if (source.connections.containsKey(subscription))
+            source.connections.get(subscription).add(new Connection(subscription,conecting.username));
+        else
+            source.connections.put(subscription, (new HashSet<>(Arrays.asList(new Connection(subscription,conecting.username)))));
+        
+        redisConnector.setNode(conecting.username, conecting);
+        redisConnector.setNode(source.username, source);
+
+        NotifyNode.notify(conecting.network.host, conecting.network.pullPort, subscription, newPorts);
+
+
+    }
+
+
+
+
     static class UserScore implements Comparable<UserScore>{
         
         public UserNode userNode;
