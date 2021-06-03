@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 public abstract class MessageWrapper implements Serializable {
     
-    private static final long serialversionUID = 129348938L;
+    static final long serialversionUID = 129348938L;
     
     public int messageID;
     public String statusMessage;

@@ -15,7 +15,7 @@ import app.exchange.zmq.*;
 
 public class NodeDatabase implements Serializable {
     
-    private static final long serialversionUID = 129348938L;
+    static final long serialversionUID = 129348938L;
     
     public String node_id;
     public long last_message_id;
@@ -103,6 +103,10 @@ public class NodeDatabase implements Serializable {
     static class PostClockComparator implements Serializable, Comparator<Post> {
         
         public int compare(Post a, Post b) {
+
+            if (a.nodeID.equals(b.nodeID)) {
+                return Long.compare(a.subscriptionClocks.get(a.nodeID), b.subscriptionClocks.get(b.nodeID));
+            }
 
             boolean allSmaller = true;
             boolean allBigger = true;

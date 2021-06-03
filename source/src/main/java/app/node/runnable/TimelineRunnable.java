@@ -75,7 +75,7 @@ public class TimelineRunnable implements Runnable {
                     this.nodeDatabase.subscriptionClocks.put(nodeClock, Math.max(old, postMessage.subscriptionClocks.get(nodeClock)));
         }
 
-        Post toRemove = null;
+        List<Post> toRemove = new ArrayList<>();
 
         if (postMessage.nodeID.equals(this.myNodeID)) {
 
@@ -90,14 +90,15 @@ public class TimelineRunnable implements Runnable {
 
             TreeSet<Post> otherPosts = this.nodeDatabase.otherNodeMessages.get(postMessage.nodeID);
 
-            if (otherPosts.size() == 2) toRemove = otherPosts.pollFirst();
-
             otherPosts.add(postMessage);   
+
+            while (otherPosts.size() > 2)
+                toRemove.add(otherPosts.pollFirst());
         }
 
-        if (toRemove != null)
-            this.nodeDatabase.myOrderedTimeline.remove(toRemove);
-        
+        for (Post p: toRemove)
+            this.nodeDatabase.myOrderedTimeline.remove(p);
+
         this.nodeDatabase.myOrderedTimeline.add(postMessage);
     }
 

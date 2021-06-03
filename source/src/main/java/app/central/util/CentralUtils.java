@@ -258,16 +258,15 @@ public class CentralUtils {
         UserNode elected = null;
 
         if(subscription.online){
-            electedPoints = points(subscription,subscriber, subscription);
+            electedPoints = points(subscription,subscriber);
             elected = subscription;
         }
-
 
         for(UserNode user : onSubscribers){
             //subscriber looking for connection cannot connect to himself
             if(!user.username.equals(subscriber.username)) {
                 
-                double tmp = points(user, subscriber,subscription);
+                double tmp = points(user, subscriber);
 
                 if(tmp > electedPoints){
                     electedPoints = tmp;
@@ -278,7 +277,6 @@ public class CentralUtils {
 
         return elected;
     }
-
 
     private List<UserNode> getOnlineSubscribers(UserNode subscription){
         List<UserNode> result = new ArrayList<>();
@@ -291,12 +289,58 @@ public class CentralUtils {
         return result;
     }
 
-
-    private double points (UserNode candidate, UserNode subscriber, UserNode subscription){
-
-
-        // avgTime/distance(diference between pub ports)
+    private double points (UserNode candidate, UserNode subscriber){
 
         return candidate.getaverageUpTime() / (double)Math.abs(subscriber.network.pubPort-candidate.network.pubPort);
+    }
+/*
+    private ConnectedTreeNode<UserNode> buildConnectedTree(UserNode rootNodeUser, List<UserNode> onlineSubscribers) {
+
+        ConnectedTreeNode<UserNode> rootNode = new ConnectedTreeNode<UserNode>(rootNodeUser);
+
+        TreeSet<UserScore> orderedScore = new TreeSet<UserScore>();
+
+        for (UserNode subscriber: onlineSubscribers) {
+            orderedScore.add(new UserScore(subscriber, points(rootNodeUser, subscriber)));
+        }
+
+        Iterator<UserScore> descIter = orderedScore.descendingIterator();
+
+        int count = 0;
+        while(descIter.hasNext()) {
+            
+            //if (Math.ceil(orderedScore.size()/2))
+            
+            //UserScore elem = descIter.next();
+            count++;
+        }
+
+        return null;
+    }
+*/
+    static class UserScore implements Comparable<UserScore>{
+        
+        public UserNode userNode;
+        public double score;
+
+        public UserScore(UserNode u, double s) {
+
+            this.userNode = u;
+            this.score = s;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hashCode(this.userNode.username);
+        }
+
+        @Override
+        public int compareTo(UserScore o) {
+            
+            int res = Double.compare(this.score,o.score);
+
+            return res == 0 ? this.userNode.username.compareTo(o.userNode.username) : res;
+        }
+
     }
 }

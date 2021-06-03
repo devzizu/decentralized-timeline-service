@@ -66,4 +66,8 @@ public class UserNode implements Serializable {
             "}";
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(username);
+    }
 }

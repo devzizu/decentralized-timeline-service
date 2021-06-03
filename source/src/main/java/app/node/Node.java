@@ -236,11 +236,15 @@ public class Node {
 
                         Post lastPost = recoverRes.posts.pollLast();
 
-                        for(String nodeClock: nodeDatabase.subscriptionClocks.keySet()) {
-                            long old = nodeDatabase.subscriptionClocks.get(nodeClock);
-                            if (nodeClock.equals(lastPost.nodeID))
-                                if (lastPost.subscriptionClocks.containsKey(nodeClock))    
-                                    nodeDatabase.subscriptionClocks.put(nodeClock, Math.max(lastPost.subscriptionClocks.get(nodeClock), old));
+                        // has at least one element
+                        if (lastPost != null) {
+
+                            for(String nodeClock: nodeDatabase.subscriptionClocks.keySet()) {
+                                long old = nodeDatabase.subscriptionClocks.get(nodeClock);
+                                if (nodeClock.equals(lastPost.nodeID))
+                                    if (lastPost.subscriptionClocks.containsKey(nodeClock))    
+                                        nodeDatabase.subscriptionClocks.put(nodeClock, Math.max(lastPost.subscriptionClocks.get(nodeClock), old));
+                            }
                         }
 
                         GUI.showMessageFromNode(nodeID, "Recover clock result = " + nodeDatabase.subscriptionClocks.toString());

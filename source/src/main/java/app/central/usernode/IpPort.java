@@ -5,7 +5,7 @@ import java.util.Objects;
 
 public class IpPort implements Serializable {
 
-    private static final long serialversionUID = 129348938L;
+    static final long serialversionUID = 129348938L;
     
     public String ip;
     public long port;

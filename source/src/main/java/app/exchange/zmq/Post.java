@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;
 
-public class Post implements Serializable,Comparable<Post> {
+public class Post implements Serializable, Comparable<Post> {
     
     public String nodeID;
     public String message;
@@ -29,24 +29,22 @@ public class Post implements Serializable,Comparable<Post> {
 
     @Override
     public String toString() {
-        return "Notification ("+this.nodeID+") = {" +
-            " postMessage='" + this.message + "'" +
-            ", subscriptionClocks='" + this.subscriptionClocks + "'" +
+        return "post ("+this.nodeID+") = {" +
+            " msg='" + this.message + "'" +
+            ", clocks='" + this.subscriptionClocks + "'" +
             "}";
     }
 
     @Override
-    public int compareTo(Post p){
-        System.out.println("COMPARETO");
-        if(this.nodeID.equals(p.nodeID)){
+    public int compareTo(Post p) {
+        if(this.nodeID.equals(p.nodeID)) {
             return Long.compare(this.subscriptionClocks.get(this.nodeID),p.subscriptionClocks.get(p.nodeID));
         }
-        return 0;
+        return -1;
     }
 
     @Override
     public boolean equals(Object o){
-        System.out.println("EQUALS");
         if(o instanceof Post){
             Post p = (Post) o;
             if( p.nodeID.equals(this.nodeID) && p.subscriptionClocks.get(p.nodeID) == this.subscriptionClocks.get(this.nodeID)) 

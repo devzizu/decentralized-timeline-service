@@ -244,7 +244,7 @@ public class NodeService {
 
         this.messagingService.sendAsync(address, type, bytes)
         .thenRun(() -> {
-            System.out.println("(node:"+type+") requesting to " + address.toString());
+            System.out.println("(node:"+type+") requesting to " + address.toString()+"\n");
         });
     }
 
