@@ -31,8 +31,8 @@ public class GeneralAPI {
         this.nodeService = service;
         this.nodeDatabase = nodeDatabase;
         this.nodeNetwork = nodeNetwork;
-        this.centralAddress = Address.from(config.getString("central", "main_address_host") + ":" + config.getLong("central", "main_address_atomix_port"));
         this.config = config;
+        this.centralAddress = Address.from(this.config.getString("central", "main_address_host") + ":" + config.getLong("central", "main_address_atomix_port"));
     }
 
     public CompletableFuture<MessageWrapper> peer_recover_node(String nodeID, long lastClock, Address peerAddress) {

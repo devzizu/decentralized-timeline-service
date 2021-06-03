@@ -7,7 +7,6 @@ import org.zeromq.ZMQ;
 
 import app.central.usernode.NodeNetwork;
 import app.exchange.*;
-import app.util.gui.GUI;
 
 public class PubRunnable implements Runnable {
 

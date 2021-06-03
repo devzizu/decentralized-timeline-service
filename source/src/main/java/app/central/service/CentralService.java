@@ -35,12 +35,12 @@ public class CentralService {
 
         Long centralThreadPoolSize = config.getLong("central", "netty_service_thread_pool");
 
-        centralServiceID = config.getString("central", "netty_service_node_id") + "_" + centralID;
-
-        this.executorService = Executors.newScheduledThreadPool(centralThreadPoolSize.intValue());
-        this.messagingService = new NettyMessagingService(centralID, Address.from((int) centralNetwork.replyPort), new MessagingConfig());
+        this.centralServiceID = config.getString("central", "netty_service_node_id") + "_" + centralID;
 
         this.centralNetwork = centralNetwork;
+        this.executorService = Executors.newScheduledThreadPool(centralThreadPoolSize.intValue());
+        this.messagingService = new NettyMessagingService(this.centralServiceID, Address.from((int) this.centralNetwork.replyPort), new MessagingConfig());
+
         this.centralUtils = centralUtils;
     }
 

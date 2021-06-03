@@ -1,4 +1,7 @@
 
+# CENTRAL : ./run.sh central
+# NODE    : ./run.sh node 1/2/... register/login
+
 compile:
 	mvn compile
 	mvn clean install

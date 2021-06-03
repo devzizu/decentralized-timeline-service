@@ -1,7 +1,5 @@
 package app.node.runnable;
 
-import java.io.Serializable;
-
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;

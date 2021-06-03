@@ -1,7 +1,5 @@
 package app.exchange.zmq;
 
-import java.io.Serializable;
-
 import app.central.usernode.IpPort;
 import app.exchange.MessageWrapper;
 

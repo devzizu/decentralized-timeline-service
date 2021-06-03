@@ -1,7 +1,6 @@
 package app.exchange.zmq;
 
 import java.io.Serializable;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.google.gson.Gson;

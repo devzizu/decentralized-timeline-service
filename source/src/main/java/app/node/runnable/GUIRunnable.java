@@ -10,7 +10,6 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-import app.central.usernode.NodeNetwork;
 import app.exchange.MessageWrapper;
 import app.exchange.ServiceConstants;
 import app.exchange.res.ClockResponse;
@@ -26,8 +25,7 @@ public class GUIRunnable implements Runnable {
 
     private String nodeID;
     private GeneralAPI centralAPI;
-    private NodeNetwork nodeNetwork;
-    private NodeDatabase nodeDatabase;
+     private NodeDatabase nodeDatabase;
     private SubRunnable subRunnable;
     private ZContext context;
     private TimelineRunnable timelineRunnable;
@@ -36,10 +34,9 @@ public class GUIRunnable implements Runnable {
         "logout", "timeline", "post", "sub"
     ));
     
-    public GUIRunnable(TimelineRunnable timelineRunnable, ZContext context, String nodeID, GeneralAPI centralAPI, NodeNetwork nodeNetwork, NodeDatabase nodeDatabase, SubRunnable subRunnable) {
+    public GUIRunnable(TimelineRunnable timelineRunnable, ZContext context, String nodeID, GeneralAPI centralAPI, NodeDatabase nodeDatabase, SubRunnable subRunnable) {
         this.nodeID = nodeID;
         this.centralAPI = centralAPI;
-        this.nodeNetwork = nodeNetwork;
         this.nodeDatabase = nodeDatabase;
         this.subRunnable = subRunnable;
         this.context = context;

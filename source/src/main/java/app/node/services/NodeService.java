@@ -35,12 +35,13 @@ public class NodeService {
         // node information
         this.nodeID = nodeID;
         this.nodeNetwork = nodeNetwork;
-        nodeServiceID = config.getString("node", "netty_service_node_id") + "_" + nodeID;
-        Long nodeThreadPoolSize = config.getLong("node", "netty_service_thread_pool");
+        this.config = config;
+        nodeServiceID = this.config.getString("node", "netty_service_node_id") + "_" + nodeID;
+        Long nodeThreadPoolSize = this.config.getLong("node", "netty_service_thread_pool");
 
         // reply: configure netty service
         this.executorService = Executors.newScheduledThreadPool(nodeThreadPoolSize.intValue());
-        this.messagingService = new NettyMessagingService(nodeServiceID, Address.from((int) nodeNetwork.replyPort), new MessagingConfig());
+        this.messagingService = new NettyMessagingService(nodeServiceID, Address.from((int) this.nodeNetwork.replyPort), new MessagingConfig());
         
         // responses from central futures
         this.centralResponses = new FutureResponses();

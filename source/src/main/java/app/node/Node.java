@@ -3,7 +3,6 @@
 package app.node;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CompletableFuture;
 
@@ -269,7 +268,7 @@ public class Node {
                 new Thread(new CentralNotificationRunnable(ctx, nodeID, nodeNetwork, subRunnable)).start();
 
                 // checks for user input
-                (new GUIRunnable(timelineRunnable, ctx, nodeID, centralAPI, nodeNetwork, nodeDatabase, subRunnable)).run();
+                (new GUIRunnable(timelineRunnable, ctx, nodeID, centralAPI, nodeDatabase, subRunnable)).run();
             }
         }
     }

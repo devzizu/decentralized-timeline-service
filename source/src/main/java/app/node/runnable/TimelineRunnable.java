@@ -1,15 +1,9 @@
 package app.node.runnable;
 
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
-
-import javax.print.attribute.standard.MediaSize.Other;
 
 import org.zeromq.SocketType;
 import org.zeromq.ZContext;
@@ -101,13 +95,9 @@ public class TimelineRunnable implements Runnable {
             otherPosts.add(postMessage);   
         }
 
-        System.out.println(this.nodeDatabase.myOrderedTimeline.size()+"#############before");
-        
         if (toRemove != null)
             this.nodeDatabase.myOrderedTimeline.remove(toRemove);
         
-        System.out.println(this.nodeDatabase.myOrderedTimeline.size()+"#############after");
-
         this.nodeDatabase.myOrderedTimeline.add(postMessage);
     }
 

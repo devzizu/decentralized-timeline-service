@@ -1,8 +1,6 @@
 
 package app.exchange.res;
 
-import java.io.Serializable;
-
 import app.exchange.MessageWrapper;
 
 public class LogoutResponse extends MessageWrapper {
