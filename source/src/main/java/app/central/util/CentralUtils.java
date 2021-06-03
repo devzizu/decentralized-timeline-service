@@ -193,33 +193,40 @@ public class CentralUtils {
             List<UserNode> onlineSubscribers = getOnlineSubscribers(originNode);
 
             for(Connection c : conns) {
-    
                 UserNode dependent = redisConnector.getNode(c.dependent_node);
-    
-                UserNode nc = electNode2Connect(onlineSubscribers, originNode, dependent);
 
-                if(nc!=null){
-
-                    dependent.dependsOn.remove(username);
-
-                    if(dependent.dependsOn.containsKey(nc.username))
-                        dependent.dependsOn.get(nc.username).add(subscription);
-                    else
-                        dependent.dependsOn.put(nc.username, (new HashSet<>(Arrays.asList(subscription))));
-
-                    redisConnector.setNode(nc.username, nc);
-
-                    IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
-
-                    NotifyNode.notify(dependent.network.host, dependent.network.pullPort, c.origin_node, newPorts);
+                if(!c.origin_node.equals(username)) {
         
-                    if (nc.connections.containsKey(c.origin_node))
-                        nc.connections.get(c.origin_node).add(new Connection(c.origin_node,c.dependent_node));
-                    else
-                    nc.connections.put(c.origin_node, (new HashSet<>(Arrays.asList(new Connection(c.origin_node,c.dependent_node)))));
+                    UserNode nc = electNode2Connect(onlineSubscribers, originNode, dependent);
 
-                    redisConnector.setNode(nc.username, nc);
-                }
+                    if(nc!=null){
+
+                        dependent.dependsOn.remove(username);
+
+                        if(dependent.dependsOn.containsKey(nc.username))
+                            dependent.dependsOn.get(nc.username).add(subscription);
+                        else
+                            dependent.dependsOn.put(nc.username, (new HashSet<>(Arrays.asList(subscription))));
+
+                        redisConnector.setNode(dependent.username, dependent);
+
+                        IpPort newPorts = new IpPort(nc.network.host,nc.network.pubPort);
+
+                        NotifyNode.notify(dependent.network.host, dependent.network.pullPort, c.origin_node, newPorts);
+            
+                        if (nc.connections.containsKey(c.origin_node))
+                            nc.connections.get(c.origin_node).add(new Connection(c.origin_node,c.dependent_node));
+                        else
+                            nc.connections.put(c.origin_node, (new HashSet<>(Arrays.asList(new Connection(c.origin_node,c.dependent_node)))));
+
+                        redisConnector.setNode(nc.username, nc);
+                    }
+
+                } else {
+                    
+                    dependent.dependsOn.remove(username);
+                    redisConnector.setNode(dependent.username, dependent);
+                }                
             }
         }
 
@@ -300,7 +307,7 @@ public class CentralUtils {
 
         TreeSet<UserScore> orderedScore = new TreeSet<UserScore>();
 
-        List<UserNode> alreadyConnected = new ArrayList();
+        List<UserNode> alreadyConnected = new ArrayList<>();
 
         for (UserNode subscriber: onlineSubscribers) {
             orderedScore.add(new UserScore(subscriber, points(rootNodeUser, subscriber)));
@@ -309,8 +316,8 @@ public class CentralUtils {
         Iterator<UserScore> descIter = orderedScore.descendingIterator();
 
         int count = 0;
-        int half = Math.ceil(orderedScore.size()/2);
-        while(descIter.hasNext() && count<=half) {
+        int half = (int) Math.ceil(orderedScore.size()/2);
+        while(descIter.hasNext() && count<half) {
             
             UserScore elem = descIter.next();
             treeConnection(elem.userNode, rootNodeUser, rootNodeUser.username);
@@ -348,9 +355,8 @@ public class CentralUtils {
         redisConnector.setNode(conecting.username, conecting);
         redisConnector.setNode(source.username, source);
 
+        IpPort newPorts = new IpPort(source.network.host,source.network.pubPort);
         NotifyNode.notify(conecting.network.host, conecting.network.pullPort, subscription, newPorts);
-
-
     }
 
 
