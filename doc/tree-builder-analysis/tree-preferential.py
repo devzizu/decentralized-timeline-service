@@ -15,7 +15,7 @@ def main():
 
     broadcastRes = {}
 
-    for testSize in np.arange(10, 1010, 10).tolist():
+    for testSize in np.arange(10, 20, 10).tolist():
         
         TREE_CREATION_BENCH[testSize] = []
         broadcastRes[testSize] = []
@@ -23,6 +23,8 @@ def main():
         for sampleNumber in range(0, NR_SAMPLES):
             #ELAPSED, GRAPH = create_points_based_tree(testSize)
             ELAPSED, GRAPH = create_random_tree(testSize)
+            networkx.draw(GRAPH, with_labels=True)
+            plt.show()
             TREE_CREATION_BENCH[testSize].append(ELAPSED)
             broadcastRes[testSize] = broadcast_graph(testSize, GRAPH)
 
@@ -80,7 +82,7 @@ def create_random_tree(NR_ELEMTS_ATTACH):
     GRAPH = networkx.Graph()
     GRAPH.add_node(rootName())
 
-    NODES = [{"id": idx, "points": -1, "avgSession": round(random.uniform(0, 100), 2), "location": random.randint(1, 1000)} for idx in range(1, NR_ELEMTS_ATTACH+1)]
+    NODES = [{"id": idx, "points": "*", "avgSession": round(random.uniform(0, 100), 2), "location": random.randint(1, 1000)} for idx in range(1, NR_ELEMTS_ATTACH+1)]
  
     ST_TIME = time.time()
    
