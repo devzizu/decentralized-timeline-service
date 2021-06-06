@@ -15,14 +15,14 @@ def main():
 
     broadcastRes = {}
 
-    for testSize in np.arange(10, 20, 10).tolist():
+    for testSize in np.arange(500, 510, 10).tolist():
         
         TREE_CREATION_BENCH[testSize] = []
         broadcastRes[testSize] = []
 
         for sampleNumber in range(0, NR_SAMPLES):
-            #ELAPSED, GRAPH = create_points_based_tree(testSize)
-            ELAPSED, GRAPH = create_random_tree(testSize)
+            ELAPSED, GRAPH = create_points_based_tree(testSize)
+            #ELAPSED, GRAPH = create_random_tree(testSize)
             networkx.draw(GRAPH, with_labels=True)
             plt.show()
             TREE_CREATION_BENCH[testSize].append(ELAPSED)
